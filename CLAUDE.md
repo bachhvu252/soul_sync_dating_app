@@ -14,9 +14,9 @@ SoulSync is a modern dating platform designed to connect compatible individuals 
 | Primary Backend | Node.js (Express) | REST API, auth, real-time (Socket.IO) |
 | AI/ML Service | Python (FastAPI) | AI matching, sentiment analysis, conversation starters |
 | Media Service | Python (Flask) | Image upload, processing, storage |
-| Database | PostgreSQL | Relational data (users, matches, messages) |
-| Cache | Redis | Sessions, real-time pub/sub |
-| File Storage | AWS S3 / Cloudinary | Profile photos and media |
+| Database | SQLite (local) → PostgreSQL (prod) | Relational data (users, matches, messages) |
+| Cache | In-memory Set (local) → Redis (prod) | Sessions, real-time pub/sub |
+| File Storage | Local disk `./uploads/` (local) → AWS S3 / Cloudinary (prod) | Profile photos and media |
 
 ---
 
@@ -103,7 +103,8 @@ soulsync/
 │   ├── requirements.txt
 │   └── Dockerfile
 │
-├── docker-compose.yml
+├── uploads/                   # Local media storage (dev only, gitignored)
+├── soulsync.db                # SQLite database file (dev only, gitignored)
 └── .env.example
 ```
 
@@ -133,7 +134,7 @@ Browser (React)
 
 ---
 
-## Database Schema (PostgreSQL)
+## Database Schema (SQLite locally, PostgreSQL in production)
 
 ```sql
 -- Users & Auth
@@ -160,13 +161,13 @@ blocks (id, blocker_id, blocked_id, created_at)
 
 ### 1. Authentication
 
-**Stack:** Node.js + JWT + bcrypt + Redis (token blacklist)
+**Stack:** Node.js + JWT + bcrypt + in-memory Set (local) → Redis (prod) for token blacklist
 
 **Flow:**
 1. `POST /api/auth/register` — validate, hash password, create `users` + `profiles` row, send verification email.
 2. `POST /api/auth/login` — verify credentials, issue `accessToken` (15m) + `httpOnly refreshToken` (7d).
-3. `POST /api/auth/refresh` — rotate tokens using refresh token stored in Redis.
-4. `POST /api/auth/logout` — blacklist access token in Redis.
+3. `POST /api/auth/refresh` — rotate tokens using refresh token stored in-memory (local) or Redis (prod).
+4. `POST /api/auth/logout` — blacklist access token in-memory Set (local) or Redis (prod).
 
 **Conventions:**
 - Always use `httpOnly, Secure, SameSite=Strict` cookies for refresh tokens.
@@ -198,7 +199,7 @@ const protect = async (req, res, next) => {
 
 **Photo Upload Flow:**
 1. Frontend sends `multipart/form-data` to `POST /api/media/upload` (Flask).
-2. Flask service: validate MIME type (jpg/png/webp only), resize to max 1080px, compress, upload to S3/Cloudinary, return `{ url, thumbnailUrl }`.
+2. Flask service: validate MIME type (jpg/png/webp only), resize to max 1080px, compress, save to `./uploads/` (local) or S3/Cloudinary (prod), return `{ url, thumbnailUrl }`.
 3. Frontend then calls Node.js `POST /api/profile/photos` with returned URL to persist in DB.
 
 **Flask Media Service conventions:**
@@ -258,7 +259,7 @@ async def score_candidates(payload: MatchRequest):
 
 ### 4. Chat & Messaging
 
-**Stack:** Node.js + Socket.IO + Redis Pub/Sub
+**Stack:** Node.js + Socket.IO (no Redis adapter locally; add `socket.io-redis` for prod horizontal scaling)
 
 **Socket.IO Events:**
 
@@ -384,22 +385,21 @@ async def load_models():
 ## Environment Variables
 
 ```bash
-# .env.example
+# .env.local (local development — committed as .env.example, actual values gitignored)
 
 # Node.js
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://user:pass@localhost:5432/soulsync
-REDIS_URL=redis://localhost:6379
+DATABASE_URL=sqlite:./soulsync.db
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_refresh_secret_here
+MEDIA_STORAGE=local
+UPLOADS_DIR=./uploads
 
 # Flask Media Service
 FLASK_PORT=5001
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_S3_BUCKET=soulsync-media
-CLOUDINARY_URL=             # Alternative to S3
+STORAGE_BACKEND=local
+UPLOADS_DIR=./uploads
 
 # FastAPI AI Service
 FASTAPI_PORT=8001
@@ -409,6 +409,12 @@ SENTENCE_TRANSFORMER_MODEL=all-MiniLM-L6-v2
 # Shared
 INTERNAL_API_SECRET=        # For Node → Flask/FastAPI service-to-service calls
 ```
+
+> **Production overrides** — swap these when deploying:
+> - `DATABASE_URL` → `postgresql://user:pass@host:5432/soulsync`
+> - `REDIS_URL` → `redis://host:6379`
+> - `STORAGE_BACKEND` → `s3` or `cloudinary`
+> - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET` (or `CLOUDINARY_URL`)
 
 ---
 
@@ -441,29 +447,35 @@ INTERNAL_API_SECRET=        # For Node → Flask/FastAPI service-to-service call
 
 - Socket.IO rooms are named by `conversationId`.
 - On connection, authenticated users join their own `userId` room for receiving match notifications.
-- Redis adapter (`socket.io-redis`) enables horizontal scaling across multiple Node instances.
+- **Local:** Socket.IO runs without a Redis adapter (single process, no pub/sub needed).
+- **Production:** Add `socket.io-redis` adapter to enable horizontal scaling across multiple Node instances.
 - Typing indicators: debounce on client, emit stop after 3s of inactivity.
 
 ---
 
-## Development Setup
+## Development Setup (Local — No Docker Required)
+
+Run each service in its own terminal tab:
 
 ```bash
-# Start all services with Docker Compose
-docker-compose up
-
-# Frontend dev server
+# Terminal 1 — Frontend
 cd frontend && npm install && npm run dev
+# → http://localhost:5173
 
-# Node.js backend
+# Terminal 2 — Node.js API
 cd backend-node && npm install && npm run dev
+# → http://localhost:3001
 
-# FastAPI
+# Terminal 3 — FastAPI AI Service
 cd backend-fastapi && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8001
+# → http://localhost:8001
 
-# Flask
+# Terminal 4 — Flask Media Service
 cd backend-flask && pip install -r requirements.txt && flask run --port 5001
+# → http://localhost:5001
 ```
+
+SQLite database (`soulsync.db`) and uploaded files (`./uploads/`) are created automatically on first run. Both are gitignored — add them to `.gitignore` if not already present.
 
 ---
 
@@ -478,3 +490,9 @@ cd backend-flask && pip install -r requirements.txt && flask run --port 5001
 4. **Why separate AI and media services?** Independent scaling — AI inference is CPU/GPU-heavy; media processing is I/O-heavy. Separating them allows targeted resource allocation.
 
 5. **Blocks at DB level:** Filtering blocked users in application code risks leaking them through pagination edge cases. DB-level exclusion is authoritative and consistent.
+
+6. **Why SQLite locally instead of PostgreSQL?** Zero install overhead — SQLite is a single file, no server process needed. Sequelize and SQLAlchemy both support it with just a connection string swap. Switch to PostgreSQL for production by changing `DATABASE_URL`.
+
+7. **Why no Redis locally?** For a small local project with a single Node.js process, an in-memory Set handles token blacklisting and Socket.IO needs no pub/sub adapter. Add Redis back when deploying to production with multiple instances.
+
+8. **Why local disk instead of S3 locally?** No credentials or cloud setup needed. Node.js serves `./uploads/` as a static directory so image URLs work identically to production. Switch `STORAGE_BACKEND=s3` and add AWS credentials when deploying.
