@@ -1,0 +1,372 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSync - Landing Page</title>
+
+    <!-- React & ReactDOM -->
+    <script src="https://cdn.jsdelivr.net/npm/react@18.0.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.0.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-pink: #ec4899;
+            --dark-purple: #581c48;
+            --light-pink-bg: #fff0f7;
+            --cta-pink: #f9a8d4;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .soul-sync-logo-text {
+            font-family: 'Brush Script MT', cursive;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f472b6, #db2777);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(2px 2px 0px rgba(219, 39, 119, 0.2));
+        }
+
+        .hero-title-gradient {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-style: italic;
+            background: linear-gradient(135deg, #f472b6, #db2777);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(236, 72, 153, 0.3);
+            letter-spacing: -1px;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2) rotate(180deg);
+                opacity: 0.7;
+            }
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(88, 28, 72, 0.2);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fce7f3;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ec4899;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Components ---
+
+        // 1. Navbar Component
+        const Navbar = () => {
+            return (
+                <nav className="flex items-center justify-between px-8 py-4 bg-white shadow-sm sticky top-0 z-50">
+                    <div className="text-2xl soul-sync-logo-text cursor-pointer">
+                        SoulSync
+                    </div>
+
+                    <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-700">
+                        <a href="#how-it-works" className="hover:text-pink-600 transition-colors">How It Works</a>
+                        <a href="#" className="hover:text-pink-600 transition-colors">AI Features</a>
+                        <a href="#stories" className="hover:text-pink-600 transition-colors">Stories</a>
+
+                        <button className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                            Join Now
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu Icon */}
+                    <div className="md:hidden text-gray-700 text-xl cursor-pointer">
+                        <i className="fas fa-bars"></i>
+                    </div>
+                </nav>
+            );
+        };
+
+        // 2. Hero Section Component
+        const HeroSection = () => {
+            return (
+                <section className="relative bg-white pt-16 pb-24 px-4 md:px-12 lg:px-24 overflow-hidden">
+                    {/* Background subtle decoration */}
+                    <div className="absolute top-10 right-0 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                    <div className="absolute bottom-10 left-0 w-96 h-96 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                        {/* Left Content */}
+                        <div className="space-y-8 text-center lg:text-left">
+                            <div className="relative inline-block">
+                                <h1 className="text-6xl md:text-8xl hero-title-gradient leading-tight">
+                                    SoulSync
+                                </h1>
+                                {/* Decorative Sparkles */}
+                                <i className="fas fa-star text-yellow-400 absolute -top-4 -left-4 text-2xl sparkle"></i>
+                                <i className="fas fa-star text-yellow-400 absolute top-10 -right-4 text-xl sparkle" style={{ animationDelay: '0.5s' }}></i>
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-bold text-pink-700 tracking-wide uppercase drop-shadow-sm">
+                                IN SYNC-IN LOVE
+                            </h2>
+
+                            <p className="text-gray-600 max-w-md mx-auto lg:mx-0 leading-relaxed text-base">
+                                Experience the future of dating where AI meets Y2K aesthetics. Find your perfect frequency and sync your soul with genuine connections.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                                <button className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    Get Started
+                                </button>
+                                <button className="border-2 border-pink-500 text-pink-500 hover:bg-pink-50 px-8 py-3 rounded-lg font-semibold transition-all duration-300">
+                                    Join Now
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Right Illustration/Image Area */}
+                        <div className="relative flex justify-center lg:justify-end">
+                            <div className="relative w-80 h-80 md:w-96 md:h-96 bg-[#fdf4e7] rounded-[2rem] border-4 border-[#3e2723] shadow-2xl overflow-hidden flex items-center justify-center p-6 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+
+                                {/* 
+                                    IMAGE PLACEHOLDER INSTRUCTIONS:
+                                    Replace the div below with an <img> tag.
+                                    Recommended image: A cute vector illustration of a couple talking or looking at each other.
+                                    Style: Flat design, warm colors (peach, beige), Y2K aesthetic.
+                                    
+                                    Example Code:
+                                    <img 
+                                        src="/path-to-your-image/couple-illustration.png" 
+                                        alt="Couple connecting" 
+                                        className="w-full h-full object-contain"
+                                    />
+                                */}
+                                <div className="w-full h-full flex items-center justify-center relative">
+                                    {/* Mockup of the visual content */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="flex gap-4 items-end">
+                                            {/* Man Figure Placeholder */}
+                                            <div className="w-16 h-32 bg-green-900 rounded-t-full relative z-10">
+                                                <div className="w-12 h-12 bg-[#ffccbc] rounded-full absolute -top-10 left-2 border-2 border-white"></div>
+                                            </div>
+
+                                            {/* Woman Figure Placeholder */}
+                                            <div className="w-16 h-28 bg-pink-200 rounded-t-full relative mt-4">
+                                                <div className="w-12 h-12 bg-[#ffccbc] rounded-full absolute -top-10 left-2 border-2 border-white"></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Chat Bubble */}
+                                        <div className="absolute bottom-16 -left-4 bg-[#ffffcc] border border-yellow-400 p-2 rounded-lg shadow-md text-xs font-medium text-gray-700 max-w-[140px] transform -rotate-2">
+                                            "Wanna grab coffee? ☕"
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Badge */}
+                                <div className="absolute top-4 right-4 bg-white border border-pink-400 text-pink-600 text-xs font-bold px-3 py-1 rounded-full shadow-sm animate-bounce">
+                                    New Sign 🔥
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // 3. How It Works Component
+        const HowItWorks = () => {
+            const steps = [
+                {
+                    icon: "fa-user-plus",
+                    title: "Create Profile",
+                    desc: "Tell us about your interests, your vibe, and your favorite Y2K trends to build your unique digital soul.",
+                    color: "text-pink-400"
+                },
+                {
+                    icon: "fa-brain",
+                    title: "AI Finds Your Match",
+                    desc: "Our advanced neural network analyzes your unique frequency to suggest highly compatible partners.",
+                    color: "text-yellow-400"
+                },
+                {
+                    icon: "fa-comments",
+                    title: "Chat & Connect",
+                    desc: "Break the ice with AI-facilitated chat windows and start your journey toward a meaningful connection.",
+                    color: "text-blue-400"
+                }
+            ];
+
+            return (
+                <section id="how-it-works" className="bg-[#581c48] py-20 px-4 text-white">
+                    <div className="max-w-6xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 relative inline-block left-1/2 transform -translate-x-1/2">
+                            How It Works
+                            <span className="block w-24 h-1 bg-pink-400 mx-auto mt-2 rounded-full"></span>
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {steps.map((step, index) => (
+                                <div key={index} className="bg-transparent p-6 rounded-xl text-center group hover:bg-white/5 transition-all duration-300 card-hover cursor-default border border-transparent hover:border-white/10">
+                                    <div className={`text-5xl mb-6 ${step.color} group-hover:scale-110 transition-transform duration-300`}>
+                                        <i className={`fas ${step.icon}`}></i>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3">{step.title}</h3>
+                                    <p className="text-pink-100/70 text-sm leading-relaxed">
+                                        {step.desc}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // 4. Testimonials/Stories Component
+        const Stories = () => {
+            return (
+                <section id="stories" className="bg-[#fff0f7] py-20 px-4">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#581c48] mb-2">
+                            Heart-to-Heart Stories
+                        </h2>
+                        <p className="text-pink-400 text-sm mb-12 font-medium">Real connections made on SoulSync</p>
+
+                        <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-pink-100 relative max-w-2xl mx-auto">
+                            {/* Quote decoration */}
+                            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white px-4 border-b-2 border-pink-300">
+                                <span className="text-3xl text-pink-300 font-serif italic">format_quote</span>
+                            </div>
+
+                            <blockquote className="text-gray-700 text-lg md:text-xl leading-relaxed mb-8 italic font-medium">
+                                "I found someone who truly understands me. The AI matching isn't just about hobbies; it's about the soul frequency. We've been in sync since our first chat!"
+                            </blockquote>
+
+                            <div className="flex flex-col items-center">
+                                {/* 
+                                    AVATAR IMAGE PLACEHOLDER:
+                                    Replace the div below with an <img> tag for user avatar.
+                                    Example: <img src="avatar.jpg" alt="User" className="..." />
+                                */}
+                                <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden border-2 border-pink-200 mb-3">
+                                    {/* Placeholder Avatar Icon if no image */}
+                                    <div className="w-full h-full bg-pink-50 flex items-center justify-center text-pink-400">
+                                        <i className="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                <div className="font-bold text-[#581c48]">Sarah J.</div>
+                                <div className="text-xs text-pink-400 uppercase tracking-wider mt-1">Matched 3 months ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // 5. CTA / Footer Top Component
+        const CTASection = () => {
+            return (
+                <section className="bg-[#f9a8d4] py-20 px-4 text-center">
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold text-[#581c48] mb-4">
+                            Start your journey today
+                        </h2>
+                        <p className="text-[#581c48]/80 mb-10 max-w-lg mx-auto">
+                            Join thousands of souls finding their perfect match in the most vibrant dating community on the web.
+                        </p>
+
+                        <button className="bg-[#581c48] hover:bg-[#401332] text-white px-10 py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                            Sign Up Free
+                        </button>
+
+                        <p className="mt-6 text-xs text-[#581c48]/60">
+                            Available on iOS and Android
+                        </p>
+                    </div>
+                </section>
+            );
+        };
+
+        // 6. Footer Component
+        const Footer = () => {
+            return (
+                <footer className="bg-white py-8 px-4 border-t border-gray-100">
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                        <div className="mb-4 md:mb-0">
+                            © 2024 SoulSync. All rights reserved.
+                        </div>
+                        <div className="flex space-x-6">
+                            <a href="#" className="hover:text-pink-500 transition-colors">terms</a>
+                            <a href="#" className="hover:text-pink-500 transition-colors">policy</a>
+                            <a href="#" className="hover:text-pink-500 transition-colors">help</a>
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            return (
+                <div className="min-h-screen flex flex-col font-sans antialiased">
+                    <Navbar />
+                    <main className="flex-grow">
+                        <HeroSection />
+                        <HowItWorks />
+                        <Stories />
+                        <CTASection />
+                    </main>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
