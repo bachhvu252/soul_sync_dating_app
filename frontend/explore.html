@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulSync — Explore</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --color-primary: #EE2B7C;
+      --color-primary-light: #FDF2F8;
+      --color-bg: #FAFAFA;
+      --text-dark: #1F2937;
+      --text-muted: #6B7280;
+      --border-color: #E5E7EB;
+      
+      --font-display: 'Public Sans', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font-body); }
+    ul { list-style: none; }
+
+    /* ============================================================
+       NAVIGATION BAR
+    ============================================================ */
+    .navbar {
+      height: 80px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-logo img { height: 40px; }
+    
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links li a {
+      font-weight: 600; font-size: 14px;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .nav-links li a:hover { color: var(--color-primary); }
+    .nav-links li a.active { color: var(--text-dark); position: relative; }
+    .nav-links li a.active::after {
+      content: ''; position: absolute; bottom: -32px; left: 0; width: 100%;
+      height: 2px; background: var(--color-primary);
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    .bell-icon { width: 24px; height: 24px; color: var(--text-dark); }
+    
+    .user-profile {
+      display: flex; align-items: center; gap: 12px;
+      padding-left: 24px; border-left: 1px solid var(--border-color);
+    }
+    .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-name { font-weight: 700; font-size: 14px; }
+    .user-tier { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+    /* ============================================================
+       EXPLORE LAYOUT
+    ============================================================ */
+    .container {
+      max-width: 1200px; margin: 0 auto;
+      padding: 40px 48px;
+      display: flex; gap: 80px; align-items: flex-start;
+    }
+    .main-feed { flex: 1; max-width: 600px; display: flex; flex-direction: column; gap: 32px; }
+    .right-sidebar { width: 320px; position: sticky; top: 120px; }
+
+    /* ============================================================
+       MAIN FEED Components
+    ============================================================ */
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 32px; font-weight: 800; color: #831843;
+      margin-bottom: 24px;
+    }
+
+    /* Stories Scroll */
+    .stories-scroll {
+      display: flex; gap: 20px; overflow-x: auto; padding-bottom: 8px;
+    }
+    .stories-scroll::-webkit-scrollbar { display: none; }
+    .story-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer;
+    }
+    .story-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 2px solid var(--color-primary); padding: 3px; position: relative;
+    }
+    .story-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .status-dot {
+      position: absolute; bottom: 0; right: 0;
+      width: 16px; height: 16px; background: #10B981;
+      border: 3px solid var(--color-bg); border-radius: 50%;
+    }
+    .story-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+
+    /* Creator Box */
+    .creator-box {
+      background: var(--color-primary-light);
+      border-radius: 20px; padding: 20px;
+    }
+    .creator-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .creator-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .creator-input {
+      flex: 1; background: #FAE8F0; border: none; border-radius: 20px;
+      padding: 12px 20px; font-family: var(--font-body); font-size: 15px; color: #831843; outline: none;
+    }
+    .creator-input::placeholder { color: #D191AA; }
+    .creator-actions { display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+    .action-btn {
+      display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #831843;
+      background: none; border: none;
+    }
+
+    /* Post Card */
+    .post-card {
+      background: white; border-radius: 24px; padding: 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;
+    }
+    
+    .post-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 24px 16px;
+    }
+    .post-author { display: flex; align-items: center; gap: 12px; }
+    .author-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+    .author-info { display: flex; flex-direction: column; }
+    .author-name { font-weight: 700; font-size: 16px; color: var(--text-dark); }
+    .author-time { font-size: 13px; color: var(--text-muted); }
+    .post-menu { color: var(--text-muted); background: none; border: none; font-size: 24px; line-height: 1; padding-bottom: 8px;}
+    
+    .post-media { position: relative; width: 100%; border-radius: 24px; overflow: hidden; }
+    .post-image { width: 100%; height: auto; object-fit: cover; display: block; }
+    .badge-chill {
+      position: absolute; top: 16px; right: 16px;
+      background: white; color: var(--text-dark); font-size: 13px; font-weight: 700;
+      padding: 6px 12px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .post-overlay {
+      position: absolute; bottom: 16px; left: 16px; right: 16px;
+      background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px);
+      padding: 16px; border-radius: 20px; font-size: 14px; font-weight: 600; color: var(--text-dark);
+      display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.4);
+    }
+    .icon-circle {
+      width: 32px; height: 32px; border-radius: 50%; background: #C4B5FD;
+      display: flex; align-items: center; justify-content: center; color: white; flex-shrink:0;
+    }
+
+    .post-content { padding: 20px 24px 24px; }
+    .post-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .actions-left { display: flex; align-items: center; gap: 24px; }
+    .action-stat { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .action-stat.liked { color: var(--color-primary); }
+    
+    .post-text { font-size: 15px; line-height: 1.6; color: var(--text-dark); margin-bottom: 24px; }
+    
+    .btn-primary {
+      width: 100%; background: linear-gradient(135deg, #F472B6, #EE2B7C); 
+      color: white; border: none; border-radius: 24px;
+      padding: 16px; font-size: 15px; font-weight: 700;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* ============================================================
+       RIGHT SIDEBAR
+    ============================================================ */
+    
+    .search-box {
+      width: 100%; background: var(--color-primary-light);
+      border-radius: 20px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .search-box input {
+      background: transparent; border: none; font-family: var(--font-body); font-size: 14px; flex: 1; outline: none;
+      color: #831843;
+    }
+    .search-box input::placeholder { color: #D191AA; }
+    .search-icon { color: var(--color-primary); }
+
+    .sidebar-header-main { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 32px; }
+    .sidebar-header-main h3 { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #831843; }
+    .sidebar-header-main a { font-size: 14px; color: #831843; font-weight: 600; text-decoration: underline; }
+
+    .spot-section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .spot-list { display: flex; flex-direction: column; gap: 24px; }
+    .spot-item { display: flex; gap: 16px; cursor: pointer; }
+    .spot-img-wrapper { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+    .spot-img { width: 100%; height: 100%; border-radius: 16px; object-fit: cover; }
+    .spot-badge {
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      background: var(--color-primary); color: white; font-size: 9px; font-weight: 800;
+      padding: 3px 8px; border-radius: 8px; white-space: nowrap; border: 2px solid white;
+    }
+    .spot-info { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+    .spot-name { font-size: 14px; font-weight: 700; color: var(--text-dark); line-height: 1.3;}
+    .spot-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Floating Messages Button */
+    .floating-bot {
+      position: fixed; bottom: 48px; right: 48px; z-index: 50;
+      background: white; border: 2px solid var(--color-primary);
+      padding: 12px 24px; border-radius: 30px; box-shadow: var(--shadow-md);
+      display: flex; align-items: center; gap: 16px; cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .floating-bot:hover { transform: translateY(-4px); }
+    .floating-bot span { font-weight: 700; font-size: 16px; color: var(--color-primary); display: flex; align-items: center; gap: 8px; }
+    
+    .mini-avatars { display: flex; }
+    .mini-avatars img {
+      width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; object-fit: cover;
+      margin-left: -8px;
+    }
+    .mini-avatars img:first-child { margin-left: 0; }
+
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="nav-logo">
+        <img src="./public/login-logo.png" onerror="this.src='https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95f372b8-a4c4-44e7-b5a6-d827bda5f541'" alt="SoulSync">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/matches.html">Matches</a></li>
+        <li><a href="/messages.html">Messages</a></li>
+        <li><a href="/explore.html" class="active">Explore</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+      <div class="user-profile">
+        <div class="user-info">
+          <span class="user-name">Ha Chi Ph</span>
+          <span class="user-tier">PRO MEMBER</span>
+        </div>
+        <img src="./public/avatar_jungkook.png" class="user-avatar" alt="User">
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+    
+    <!-- LEFT: MAIN FEED -->
+    <main class="main-feed">
+      
+      <h1 class="page-title">Explore</h1>
+      
+      <!-- Stories -->
+      <div class="stories-scroll">
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_1.png" alt="Long">
+            <div class="status-dot"></div>
+          </div>
+          <span class="story-name">Long</span>
+        </div>
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_2.png" alt="Ph Vu">
+          </div>
+          <span class="story-name">Ph Vu</span>
+        </div>
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_3.png" alt="Hiep">
+          </div>
+          <span class="story-name">Hiep</span>
+        </div>
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_taehyung.png" alt="My">
+            <div class="status-dot"></div>
+          </div>
+          <span class="story-name">My</span>
+        </div>
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_1.png" alt="John">
+            <div class="status-dot"></div>
+          </div>
+          <span class="story-name">John</span>
+        </div>
+        <div class="story-item">
+          <div class="story-ring">
+            <img src="./public/avatar_3.png" alt="Sarah">
+          </div>
+          <span class="story-name">Sarah</span>
+        </div>
+      </div>
+
+      <!-- Creator Box -->
+      <div class="creator-box">
+        <div class="creator-top">
+          <img src="./public/avatar_jungkook.png" class="creator-avatar" alt="You">
+          <input type="text" class="creator-input" placeholder="What's on your mind?">
+        </div>
+        <div class="creator-actions">
+          <button class="action-btn">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 5a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2H4zm12 5a2 2 0 11-4 0 2 2 0 014 0zm-7 6l3-4 4 5H5l4-6z"/></svg>
+            Photo/video
+          </button>
+          <button class="action-btn">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-2-11a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm4 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-2 6c1.66 0 3.14-.99 3.73-2.48l-1.85-.75c-.32.8-1.07 1.23-1.88 1.23s-1.56-.43-1.88-1.23l-1.85.75C9.86 16.01 11.34 17 13 17z"/></svg>
+            Feeling/activity
+          </button>
+        </div>
+      </div>
+
+      <!-- Post Card -->
+      <article class="post-card">
+        <div class="post-header">
+          <div class="post-author">
+            <img src="./public/avatar_2.png" class="author-avatar" alt="Long Trinh">
+            <div class="author-info">
+              <span class="author-name">Long Trinh</span>
+              <span class="author-time">2 hours ago</span>
+            </div>
+          </div>
+          <button class="post-menu">...</button>
+        </div>
+
+        <div class="post-media">
+          <img src="./public/place_1.png" class="post-image" alt="Sunset">
+          <div class="badge-chill">🌅 Chill</div>
+          <div class="post-overlay">
+            <div class="icon-circle">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15l-4-4h8l-4 4z"></path><path d="M12 3a9 9 0 100 18 9 9 0 000-18zm0 16a7 7 0 110-14 7 7 0 010 14z"></path></svg>
+            </div>
+            You both enjoy traveling ✈️
+          </div>
+        </div>
+
+        <div class="post-content">
+          <div class="post-actions">
+            <div class="actions-left">
+              <div class="action-stat liked">
+                <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                128
+              </div>
+              <div class="action-stat">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                14
+              </div>
+              <div class="action-stat">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              </div>
+            </div>
+            <div class="action-stat">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            </div>
+          </div>
+          
+          <p class="post-text">
+            Finally made it to the coast! The energy here is exactly what I needed. Nothing beats a Pacific sunset.
+          </p>
+
+          <button class="btn-primary">
+            🌸 Ask about this
+          </button>
+        </div>
+      </article>
+
+    </main>
+
+    <!-- RIGHT: SIDEBAR -->
+    <aside class="right-sidebar">
+      
+      <div class="search-box">
+        <input type="text" placeholder="Find your friend ...">
+        <svg class="search-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </div>
+
+      <div class="sidebar-header-main">
+        <h3>Suggested for you</h3>
+        <a href="#">See all</a>
+      </div>
+
+      <div class="spot-section-header">
+        <span>DATE SPOT</span>
+        <span>VIEW MORE</span>
+      </div>
+
+      <div class="spot-list">
+        
+        <div class="spot-item">
+          <div class="spot-img-wrapper">
+            <img src="./public/place_3.png" class="spot-img" alt="West Lake">
+            <div class="spot-badge">98% SYNC</div>
+          </div>
+          <div class="spot-info">
+            <h5 class="spot-name">West Lake (Trich Sai / Ve Ho area)</h5>
+            <p class="spot-desc">Enjoy a sunset walk, then grab a salted coffee from nearby street vendors.</p>
+          </div>
+        </div>
+
+        <div class="spot-item">
+          <div class="spot-img-wrapper">
+            <img src="./public/place_2.png" class="spot-img" alt="Hoan Kiem">
+            <div class="spot-badge">98% SYNC</div>
+          </div>
+          <div class="spot-info">
+            <h5 class="spot-name">Hoan Kiem Walking Street</h5>
+            <p class="spot-desc">Perfect for weekend dates, where couples can watch street performances together.</p>
+          </div>
+        </div>
+
+        <div class="spot-item">
+          <div class="spot-img-wrapper">
+            <img src="./public/place_1.png" class="spot-img" alt="Sky Walk">
+            <div class="spot-badge">98% SYNC</div>
+          </div>
+          <div class="spot-info">
+            <h5 class="spot-name">Sky Walk Observation Deck</h5>
+            <p class="spot-desc">Experience a panoramic view of Hanoi from the 65th floor, with many great photo spots.</p>
+          </div>
+        </div>
+
+        <div class="spot-item">
+          <div class="spot-img-wrapper">
+            <img src="./public/place_2.png" class="spot-img" alt="Complex 01">
+            <div class="spot-badge">98% SYNC</div>
+          </div>
+          <div class="spot-info">
+            <h5 class="spot-name">Complex 01 (Tay Son)</h5>
+            <p class="spot-desc">A creative art space with workshops like pottery and painting.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- FLOATING APP MESSAGES BTN -->
+  <div class="floating-bot">
+    <span>
+      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+      Messages
+    </span>
+    <div class="mini-avatars">
+      <img src="./public/avatar_1.png" alt="1">
+      <img src="./public/avatar_2.png" alt="2">
+      <img src="./public/avatar_3.png" alt="3">
+    </div>
+  </div>
+
+</body>
+</html>

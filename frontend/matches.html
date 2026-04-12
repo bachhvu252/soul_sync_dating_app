@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulSync — Matches</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --color-primary: #EE2B7C;
+      --color-primary-light: #FDF2F8;
+      --color-bg: #FCFBFC; /* slight pinkish white */
+      --text-dark: #1F2937;
+      --text-muted: #6B7280;
+      --border-color: #E5E7EB;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-pink: 0 10px 25px -3px rgba(238, 43, 124, 0.3);
+      
+      --font-display: 'Public Sans', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      color: var(--text-dark);
+      padding-top: 80px; /* space for fixed nav */
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font-body); }
+    ul { list-style: none; }
+
+    /* ============================================================
+       NAVIGATION BAR
+    ============================================================ */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; width: 100%;
+      height: 80px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      z-index: 100;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-logo img { height: 40px; }
+    
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links li a {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .nav-links li a:hover { color: var(--color-primary); }
+    .nav-links li a.active {
+      color: var(--text-dark);
+      position: relative;
+    }
+    .nav-links li a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -32px; left: 0; width: 100%;
+      height: 2px;
+      background: var(--color-primary);
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    .bell-icon {
+      width: 24px; height: 24px;
+      color: var(--text-dark);
+    }
+    
+    .user-profile {
+      display: flex; align-items: center; gap: 12px;
+      padding-left: 24px;
+      border-left: 1px solid var(--border-color);
+    }
+    .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-name { font-weight: 700; font-size: 14px; }
+    .user-tier { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+    /* ============================================================
+       MAIN CONTENT CONTAINER
+    ============================================================ */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* HEADER */
+    .page-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 48px;
+    }
+    .header-text h1 {
+      font-family: var(--font-display);
+      font-size: 32px; font-weight: 800;
+      color: #831843; /* dark reddish pink */
+      margin-bottom: 8px;
+    }
+    .header-text p {
+      color: var(--text-muted); padding-left: 4px;
+    }
+    .btn-pink {
+      background: var(--color-primary); color: white;
+      border: none; border-radius: 24px;
+      padding: 12px 24px; font-weight: 600; font-size: 14px;
+      box-shadow: var(--shadow-md);
+      transition: all 0.2s;
+    }
+    .btn-pink:hover { transform: translateY(-2px); box-shadow: var(--shadow-pink); }
+
+    /* ============================================================
+       SECTION: BEST MATCHES
+    ============================================================ */
+    .section-title-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-family: var(--font-display); font-size: 20px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      color: #831843;
+    }
+    .filters {
+      display: flex; background: white; border-radius: 20px; padding: 4px;
+      box-shadow: var(--shadow-sm);
+    }
+    .filters button {
+      background: transparent; border: none; padding: 6px 16px;
+      font-size: 11px; font-weight: 700; border-radius: 16px;
+      color: #831843;
+    }
+    .filters button.active { background: var(--color-primary-light); color: var(--color-primary); }
+
+    .best-matches-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      margin-bottom: 64px;
+    }
+    
+    .match-card-large {
+      background: white; border-radius: 24px;
+      display: flex; overflow: hidden;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s;
+    }
+    .match-card-large:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .card-large-img {
+      width: 45%; object-fit: cover;
+    }
+    .card-large-content {
+      padding: 32px; display: flex; flex-direction: column; flex: 1;
+    }
+    
+    .sync-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #F3E8FF; color: #7E22CE;
+      font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 12px;
+      width: fit-content; margin-bottom: 16px;
+    }
+    .card-name { font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .card-quote { font-size: 14px; font-style: italic; color: var(--text-muted); margin-bottom: 24px; }
+    
+    .trait-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: auto; }
+    .trait-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #831843; }
+    
+    .btn-card-primary {
+      width: 100%; border: none; background: #FFA3CD; color: white;
+      padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px;
+      margin-top: 24px; transition: background 0.2s;
+    }
+    .btn-card-primary:hover { background: var(--color-primary); }
+
+    /* ============================================================
+       SECTION: RECENT CONNECTIONS
+    ============================================================ */
+    .recent-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    }
+    
+    .small-card {
+      background: white; border-radius: 24px; overflow: hidden;
+      box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+      transition: transform 0.2s;
+    }
+    .small-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    
+    .small-card-header { position: relative; height: 200px; }
+    .small-card-header img { width: 100%; height: 100%; object-fit: cover; }
+    .small-card-overlay {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 24px 16px 16px;
+    }
+    .small-card-name { color: white; font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+    
+    .status-badge {
+      position: absolute; top: 16px; right: 16px;
+      padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    }
+    .status-active { background: #F43F5E; color: white; }
+    .status-offline { background: rgba(255,255,255,0.9); color: var(--text-dark); }
+    .new-badge {
+      position: absolute; top: 16px; left: 16px;
+      background: var(--color-primary); color: white;
+      padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    }
+
+    .small-card-body { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; }
+    .tags-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tag {
+      background: #F3F4F6; color: var(--text-dark);
+      font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
+    }
+    .tag.pink { background: var(--color-primary-light); color: var(--color-primary); }
+    .tag.blue { background: #E0E7FF; color: #4338CA; }
+    .small-desc { font-size: 13px; color: var(--text-muted); margin-bottom: auto; line-height: 1.5; }
+    
+    .btn-action {
+      margin-top: 20px; width: 100%; padding: 12px; border-radius: 12px;
+      font-weight: 600; font-size: 14px; text-align: center; border: none; background: transparent;
+    }
+    .btn-solid-pink { background: #FFA3CD; color: white; }
+    .btn-outline-pink { border: 1px solid var(--color-primary); color: var(--color-primary); }
+    .btn-action:hover { opacity: 0.9; }
+
+    /* ============================================================
+       MODAL: DOUBLE DATE
+    ============================================================ */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      z-index: 1000; display: none; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .modal-overlay.active { display: flex; opacity: 1; }
+    
+    .modal-content {
+      background: #FFEDF6; /* light pink base */
+      border-radius: 24px; width: 100%; max-width: 500px;
+      padding: 40px; position: relative;
+      box-shadow: 0 25px 50px -12px rgba(238,43,124,0.25);
+      border: 1px solid white;
+      transform: scale(0.95); transition: transform 0.3s;
+    }
+    .modal-overlay.active .modal-content { transform: scale(1); }
+    
+    .btn-close {
+      position: absolute; top: -16px; right: -16px;
+      width: 40px; height: 40px; background: var(--color-primary); color: white;
+      border-radius: 50%; border: none; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .modal-badge {
+      background: var(--color-primary); color: white;
+      margin: 0 auto 32px; display: table; padding: 8px 16px;
+      border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    }
+    
+    .modal-inputs { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    .modal-input-wrapper { position: relative; }
+    .modal-input {
+      width: 100%; padding: 16px 48px 16px 24px;
+      border: 1px solid #F9A8D4; border-radius: 16px; font-size: 15px;
+      background: white; outline: none; transition: box-shadow 0.2s;
+    }
+    .modal-input:focus { box-shadow: 0 0 0 3px rgba(238,43,124,0.2); }
+    .modal-input.selected { background: #FEF2F2; border-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
+    
+    .icon-search {
+      position: absolute; right: 20px; top: 16px; width: 20px; height: 20px;
+      color: #9CA3AF; pointer-events: none;
+    }
+    .icon-check {
+      position: absolute; right: 20px; top: 16px; width: 20px; height: 20px;
+      color: var(--color-primary); display: none;
+    }
+    .modal-input.selected ~ .icon-search { display: none; }
+    .modal-input.selected ~ .icon-check { display: block; }
+    
+    .btn-create-chat {
+      background: rgba(255,255,255,0.5); color: #374151;
+      border: none; border-radius: 24px; width: fit-content; margin: 0 auto;
+      padding: 12px 24px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-create-chat.ready {
+      background: var(--color-primary); color: white;
+      box-shadow: var(--shadow-pink); transform: scale(1.05);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="nav-logo">
+        <img src="./public/login-logo.png" onerror="this.src='https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95f372b8-a4c4-44e7-b5a6-d827bda5f541'" alt="SoulSync">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="#" class="active">Matches</a></li>
+        <li><a href="#">Messages</a></li>
+        <li><a href="#">Explore</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+      <div class="user-profile">
+        <div class="user-info">
+          <span class="user-name">Ha Chi Ph</span>
+          <span class="user-tier">PRO MEMBER</span>
+        </div>
+        <img src="./public/avatar_jungkook.png" class="user-avatar" alt="User">
+      </div>
+    </div>
+  </nav>
+
+  <!-- MULTI-PAGE CONTAINER -->
+  <main class="container">
+    
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+      <div class="header-text">
+        <h1>Your Matches</h1>
+        <p>Explore souls vibrating on your frequency.</p>
+      </div>
+      <button class="btn-pink" onclick="toggleModal()">Plan a Double Date</button>
+    </header>
+
+    <!-- BEST MATCHES SECTION -->
+    <section>
+      <div class="section-title-row">
+        <h2 class="section-title">
+          <span style="font-size:24px">✨</span> Best Matches for You
+        </h2>
+        <div class="filters" id="matchFilters">
+          <button class="active" onclick="setFilter('ALL')">ALL</button>
+          <button onclick="setFilter('NEW')">NEW</button>
+          <button onclick="setFilter('ACTIVE')">ACTIVE</button>
+        </div>
+      </div>
+      
+      <div class="best-matches-grid">
+        
+        <!-- LARGE CARD 1 -->
+        <article class="match-card-large">
+          <img src="./public/avatar_taehyung.png" class="card-large-img" alt="Kim Taehyung">
+          <div class="card-large-content">
+            <div class="sync-badge">⚡ 98 % SYNCED</div>
+            <h3 class="card-name">Kim Taehyung (V), 21</h3>
+            <p class="card-quote">"Finding beauty in small moments"</p>
+            
+            <div class="trait-list">
+              <span class="trait-item">🎵 You both like Indie Rock</span>
+              <span class="trait-item">🎯 High compatibility</span>
+            </div>
+            
+            <button class="btn-card-primary">Send icebreaker</button>
+          </div>
+        </article>
+
+        <!-- LARGE CARD 2 -->
+        <article class="match-card-large">
+          <img src="./public/avatar_jungkook.png" class="card-large-img" alt="Jeon Jungkook">
+          <div class="card-large-content">
+            <div class="sync-badge" style="background:#E0E7FF; color:#4338CA">⚡ 94 % SYNCED</div>
+            <h3 class="card-name">Jeon Jungkook, 21</h3>
+            <p class="card-quote">"Finding beauty in small moments"</p>
+            
+            <div class="trait-list">
+              <span class="trait-item">🍴 You both like Gourmet Cooking</span>
+              <span class="trait-item">❤️ Emotional Resonance</span>
+            </div>
+            
+            <button class="btn-card-primary">Send icebreaker</button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- RECENT CONNECTIONS SECTION -->
+    <section>
+      <div class="section-title-row">
+        <h2 class="section-title" style="color:#1F2937">Recent Connections</h2>
+        <span style="font-size:12px; font-weight:700; color:var(--text-muted); cursor:pointer;">SEE ALL</span>
+      </div>
+
+      <div class="recent-grid">
+        
+        <!-- SMALL CARD 1 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_1.png" alt="Le Hiep">
+            <div class="status-badge status-active">Active Now</div>
+            <div class="new-badge">New</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Le Hiep, 21</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag pink">High emotional connection</span>
+              <span class="tag">Same music taste 🎧</span>
+            </div>
+            <p class="small-desc">Both love obscure lo-fi jazz and morning hiking.</p>
+            <button class="btn-action btn-solid-pink">Spark a chat</button>
+          </div>
+        </div>
+
+        <!-- SMALL CARD 2 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_2.png" alt="Lee Min-ho">
+            <div class="status-badge status-offline">Offline</div>
+            <div class="new-badge">New</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Lee Min-ho, 28</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag blue">Creative Sync</span>
+              <span class="tag">Art gallery regular 🎨</span>
+            </div>
+            <p class="small-desc">Oliver also creates digital art in his spare time.</p>
+            <button class="btn-action btn-solid-pink">Spark a chat</button>
+          </div>
+        </div>
+
+        <!-- SMALL CARD 3 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_3.png" alt="Chloe">
+            <div class="status-badge status-offline">Offline</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Chloe, 25</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag pink">Nature Lover</span>
+              <span class="tag">Succulent expert 🌿</span>
+            </div>
+            <p class="small-desc">She shared her secret garden spot in her bio.</p>
+            <button class="btn-action btn-outline-pink">Continue a Chat</button>
+          </div>
+        </div>
+
+        <!-- SMALL CARD 4 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_1.png" alt="Park Seo-joon">
+            <div class="status-badge status-offline">Offline</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Park Seo-joon, 32</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag pink">High emotional connection</span>
+              <span class="tag">Same music taste 🎧</span>
+            </div>
+            <p class="small-desc">Both love obscure lo-fi jazz and morning hiking.</p>
+            <button class="btn-action btn-outline-pink">Continue a Chat</button>
+          </div>
+        </div>
+
+        <!-- SMALL CARD 5 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_2.png" alt="Kim Soo Hyun">
+            <div class="status-badge status-active">Active Now</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Kim Soo Hyun, 28</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag blue">Creative Sync</span>
+              <span class="tag">Art gallery regular 🎨</span>
+            </div>
+            <p class="small-desc">Oliver also creates digital art in his spare time.</p>
+            <button class="btn-action btn-outline-pink">Continue a Chat</button>
+          </div>
+        </div>
+
+        <!-- SMALL CARD 6 -->
+        <div class="small-card">
+          <div class="small-card-header">
+            <img src="./public/avatar_3.png" alt="Kim Tae-pyung">
+            <div class="status-badge status-offline">Offline</div>
+            <div class="small-card-overlay">
+              <h4 class="small-card-name">Kim Tae-pyung, 37</h4>
+            </div>
+          </div>
+          <div class="small-card-body">
+            <div class="tags-row">
+              <span class="tag pink">Nature Lover</span>
+              <span class="tag">Succulent expert 🌿</span>
+            </div>
+            <p class="small-desc">She shared her secret garden spot in her bio.</p>
+            <button class="btn-action btn-solid-pink">2 unread messages</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- DOUBLE DATE MODAL OVERLAY -->
+  <div class="modal-overlay" id="doubleDateModal">
+    <div class="modal-content">
+      <button class="btn-close" onclick="toggleModal()">&times;</button>
+      
+      <div class="modal-badge">🎉 CREATE PLAN A DOUBLE DATE</div>
+      
+      <div class="modal-inputs">
+        <div class="modal-input-wrapper">
+          <input type="text" class="modal-input" id="inputFriend" placeholder="Find your friend ...">
+          <svg class="icon-search" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <svg class="icon-check" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+        </div>
+        
+        <div class="modal-input-wrapper">
+          <input type="text" class="modal-input" id="inputSoulmate" placeholder="Find my Soulmate ...">
+          <svg class="icon-search" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <svg class="icon-check" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+        </div>
+      </div>
+      
+      <button class="btn-create-chat" id="btnGroupChat" onclick="alert('Group chat created!')">
+        <svg fill="currentColor" width="16" height="16" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+        Create group chat
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Double date modal interaction logic
+    const modal = document.getElementById('doubleDateModal');
+    const inputF = document.getElementById('inputFriend');
+    const inputS = document.getElementById('inputSoulmate');
+    const btn = document.getElementById('btnGroupChat');
+    
+    function toggleModal() {
+      if(modal.classList.contains('active')) {
+        modal.classList.remove('active');
+      } else {
+        modal.classList.add('active');
+        // Reset state for demo
+        inputF.value = ''; inputF.classList.remove('selected');
+        inputS.value = ''; inputS.classList.remove('selected');
+        btn.classList.remove('ready');
+      }
+    }
+
+    // Tab Filtering Logic to simulate Figma variations
+    function setFilter(filterType) {
+      const buttons = document.querySelectorAll('#matchFilters button');
+      buttons.forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const cards = document.querySelectorAll('.small-card');
+      
+      cards.forEach(card => {
+        let isNew = card.querySelector('.new-badge') !== null;
+        let isActive = card.querySelector('.status-active') !== null;
+        
+        switch(filterType) {
+          case 'ALL':
+            card.style.display = 'flex';
+            break;
+          case 'NEW':
+            card.style.display = isNew ? 'flex' : 'none';
+            break;
+          case 'ACTIVE':
+            card.style.display = isActive ? 'flex' : 'none';
+            break;
+        }
+      });
+    }
+
+    // Close modal on click outside
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) toggleModal();
+    });
+
+    // Simulate selecting users for the UI demonstration
+    function checkSelection() {
+      if (inputF.value.length > 3) inputF.classList.add('selected');
+      else inputF.classList.remove('selected');
+
+      if (inputS.value.length > 3) inputS.classList.add('selected');
+      else inputS.classList.remove('selected');
+
+      if (inputF.classList.contains('selected') && inputS.classList.contains('selected')) {
+        btn.classList.add('ready');
+      } else {
+        btn.classList.remove('ready');
+      }
+    }
+
+    inputF.addEventListener('input', checkSelection);
+    inputS.addEventListener('input', checkSelection);
+    
+    // Simulate auto-typing to match Figma match_1 state if needed for demo
+    window.fillDemoData = () => {
+      setTimeout(()=> { inputF.value = "Phuong Vu"; checkSelection(); }, 500);
+      setTimeout(()=> { inputS.value = "Kim Tae-hyung"; checkSelection(); }, 1000);
+    }
+  </script>
+</body>
+</html>
