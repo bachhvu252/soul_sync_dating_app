@@ -167,7 +167,6 @@ const getSuggestions = async (req, res) => {
   // Build candidate where clause
   const profileWhere = {
     user_id: { [Op.notIn]: excludeIds.length ? excludeIds : ['_none_'] },
-    age: { [Op.between]: [ageMin, ageMax] },
   };
   if (genderPreference && genderPreference !== 'any') {
     profileWhere.gender = genderPreference;
@@ -176,15 +175,27 @@ const getSuggestions = async (req, res) => {
   const { count, rows: candidates } = await Profile.findAndCountAll({
     where: profileWhere,
     include: [
-      { model: User, as: 'user', where: { is_active: true }, attributes: ['id', 'is_verified'] },
-      { model: Photo, as: 'photos', required: false, order: [['order_index', 'ASC']] },
+      {
+        model: User,
+        as: 'user',
+        where: { is_active: true },
+        attributes: ['id', 'is_verified'],
+        include: [{ model: Photo, as: 'photos' }],
+      },
     ],
+    order: [[{ model: User, as: 'user' }, { model: Photo, as: 'photos' }, 'order_index', 'ASC']],
     limit,
     offset,
   });
 
+  // Hoist photos from user.photos to top level for each candidate
+  let ranked = candidates.map((c) => {
+    const json = c.toJSON();
+    json.photos = json.user?.photos || [];
+    return json;
+  });
+
   // Call FastAPI for ranking (with timeout fallback to raw list)
-  let ranked = candidates.map((c) => c.toJSON());
   try {
     const aiResponse = await axios.post(
       `${FASTAPI_BASE}/ai/match/score`,

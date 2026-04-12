@@ -26,6 +26,7 @@ const Block = sequelize.define('Block', {
   },
 }, {
   tableName: 'blocks',
+  underscored: true,
   updatedAt: false,
   indexes: [
     { unique: true, fields: ['blocker_id', 'blocked_id'] },

@@ -1,9 +1,9 @@
 /**
  * src/models/user.model.js
  *
- * Core authentication record.
- * Sensitive fields (password_hash) are NEVER included in API responses —
- * use `user.toSafeJSON()` or manually omit when serialising.
+ * Core authentication record — aligned with schema.sql.
+ * Sensitive fields (password_hash) are NEVER returned in API responses.
+ * Use user.toSafeJSON() when serialising.
  */
 
 const { DataTypes } = require('sequelize');
@@ -16,13 +16,13 @@ const User = sequelize.define('User', {
     primaryKey: true,
   },
   email: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(320),
     allowNull: false,
     unique: true,
     validate: { isEmail: true },
   },
   password_hash: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
   },
   is_active: {
@@ -33,18 +33,26 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  // Swipe restriction flag — auto-set when user accumulates 3+ pending reports
-  swipe_restricted: {
+  is_banned: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  membership_tier: {
+    type: DataTypes.ENUM('free', 'pro', 'premium'),
+    defaultValue: 'free',
+  },
+  last_login_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
-  // Sequelize adds createdAt / updatedAt automatically
+  underscored: true,
+  // createdAt / updatedAt are mapped to created_at / updated_at by underscored: true
 });
 
 /**
- * Return a safe representation of the user — no password_hash.
+ * Return a safe representation of the user — strips password_hash.
  */
 User.prototype.toSafeJSON = function () {
   const { password_hash, ...safe } = this.toJSON(); // eslint-disable-line no-unused-vars

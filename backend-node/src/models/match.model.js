@@ -43,6 +43,7 @@ const Match = sequelize.define('Match', {
   },
 }, {
   tableName: 'matches',
+  underscored: true,
   createdAt: 'matched_at',
   updatedAt: false,
   indexes: [

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulSync — Edit Profile</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Material Symbols Component -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --color-primary: #EE2B7C;
+      --color-primary-light: #FDF2F8;
+      --color-bg: #FAFAFA;
+      --text-dark: #1F2937;
+      --text-muted: #6B7280;
+      --border-color: #E5E7EB;
+      
+      --font-display: 'Public Sans', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      color: var(--text-dark);
+      padding-bottom: 120px;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font-body); border: none; outline: none; }
+
+    /* ============================================================
+       NAVIGATION BAR 
+    ============================================================ */
+    .navbar {
+      height: 80px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-logo img { height: 40px; cursor: pointer; }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links li a {
+      font-weight: 600; font-size: 14px;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    .user-profile {
+      display: flex; align-items: center; gap: 12px;
+      padding-left: 24px; border-left: 1px solid var(--border-color);
+    }
+    .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-name { font-weight: 700; font-size: 14px; }
+    .user-tier { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+      max-width: 1100px;
+      margin: 40px auto 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 24px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 16px;
+      color: #831843; font-family: var(--font-display); font-size: 24px; font-weight: 800;
+    }
+    .back-btn .material-symbols-outlined { color: var(--color-primary); font-size: 28px; font-weight: bold; }
+    .btn-preview-top {
+      background: white; border: 1px solid #FBCFE8; color: var(--color-primary);
+      padding: 10px 24px; border-radius: 24px; font-weight: 600; font-size: 14px;
+    }
+
+    /* ============================================================
+       EDIT LAYOUT GRID
+    ============================================================ */
+    .container {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+
+    .wide-box { grid-column: span 2; }
+    
+    .box {
+      background: white; border-radius: 20px; padding: 32px;
+      border: 1px solid #FCE7F3;
+    }
+    
+    .box-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .box-title {
+      font-size: 16px; font-weight: 800; color: #1F2937;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .box-title .icon { color: var(--color-primary); }
+    .box-action { font-size: 12px; font-weight: 700; color: var(--color-primary); text-transform: uppercase; }
+
+    /* Forms */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%; background: var(--color-bg); border: none;
+      padding: 14px 16px; border-radius: 8px; font-family: var(--font-body);
+      font-size: 14px; color: var(--text-dark); font-weight: 500;
+    }
+    .form-control:focus { outline: 1px solid var(--color-primary); }
+    
+    .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .input-with-icon { position: relative; }
+    .input-with-icon .material-symbols-outlined {
+      position: absolute; left: 16px; top: 14px; font-size: 18px; color: var(--color-primary);
+    }
+    .input-with-icon .form-control { padding-left: 44px; }
+
+    /* Photo Grid */
+    .photo-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .photo-slot {
+      aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; position: relative;
+      background: var(--color-bg);
+    }
+    .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .remove-photo {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 24px; height: 24px; background: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;
+    }
+    
+    .photo-slot.add-new { background: #FCE7F3; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .photo-slot.add-new .add-icon {
+      width: 32px; height: 32px; background: var(--color-primary); color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    
+    .photo-slot.empty {
+      background: white; border: 2px dashed #E5E7EB;
+      display: flex; align-items: center; justify-content: center; color: #9CA3AF;
+    }
+
+    /* About Me */
+    .about-textarea {
+      width: 100%; height: 80px; resize: none; background: var(--color-bg);
+      border: none; border-radius: 8px; padding: 16px;
+      font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--text-dark);
+    }
+    .char-count { text-align: right; font-size: 12px; color: #9CA3AF; margin-top: 8px; }
+
+    /* Interests */
+    .interests-tags { display: flex; flex-wrap: wrap; gap: 12px; }
+    .tag-pink {
+      background: var(--color-primary); color: white;
+      padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tag-pink .material-symbols-outlined { font-size: 16px; }
+    .tag-light {
+      background: #FCE7F3; color: var(--color-primary);
+      padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+    }
+
+    /* Prompts */
+    .prompt-card {
+      background: var(--color-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    }
+    .prompt-label { font-size: 10px; font-weight: 700; color: var(--color-primary); text-transform: uppercase; margin-bottom: 8px; }
+    .prompt-text { font-size: 14px; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; }
+    .prompt-text .material-symbols-outlined { color: #9CA3AF; font-size: 18px; cursor: pointer; }
+    
+    .btn-add-prompt {
+      width: 100%; background: white; border: 1px dashed #FBCFE8; color: var(--color-primary);
+      padding: 16px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    /* Personal Details List */
+    .details-list { display: flex; flex-direction: column; gap: 24px; }
+    .detail-item {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-color); padding-bottom: 12px;
+    }
+    .detail-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .detail-label { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-muted); }
+    .detail-label .material-symbols-outlined { font-size: 20px; color: #9CA3AF; }
+    .detail-value { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+
+    /* Sticky Save Button */
+    .sticky-footer {
+      position: fixed; bottom: 40px; left: 0; right: 0;
+      display: flex; justify-content: center; pointer-events: none;
+    }
+    .btn-save {
+      background: var(--color-primary); color: white;
+      padding: 16px 40px; border-radius: 30px; font-weight: 700; font-size: 15px;
+      box-shadow: 0 10px 30px rgba(238,43,124,0.3); pointer-events: auto;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-save:hover { transform: translateY(-2px); transition: 0.2s; }
+
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="SoulSync Logo" style="filter: hue-rotate(300deg) saturate(300%);">
+      </a>
+      <ul class="nav-links">
+        <li><a href="explore.html">Home</a></li>
+        <li><a href="matches.html">Matches</a></li>
+        <li><a href="messages.html">Messages</a></li>
+        <li><a href="explore.html">Explore</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <span class="material-symbols-outlined bell-icon">notifications</span>
+      <div class="user-profile">
+        <div class="user-info">
+          <span class="user-name">Ha Chi Ph</span>
+          <span class="user-tier">Pro Member</span>
+        </div>
+        <img src="public/avatar_1.png" alt="User Profile" class="user-avatar">
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">
+      <span class="material-symbols-outlined">arrow_back_ios</span>
+      Edit Profile
+    </a>
+    <button class="btn-preview-top">Preview</button>
+  </div>
+
+  <main class="container">
+    
+    <!-- Basic Info -->
+    <div class="box">
+      <div class="box-header">
+        <div class="box-title"><span class="material-symbols-outlined icon">person</span> Basic Info</div>
+      </div>
+      
+      <div class="two-cols">
+        <div class="form-group">
+          <label>FIRST NAME</label>
+          <input type="text" id="ep-first-name" class="form-control" placeholder="First Name">
+        </div>
+        <div class="form-group">
+          <label>DATE OF BIRTH</label>
+          <input type="date" id="ep-dob" class="form-control">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>LOCATION</label>
+        <div class="input-with-icon">
+          <span class="material-symbols-outlined">location_on</span>
+          <input type="text" id="ep-location" class="form-control" placeholder="City, Country">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Photos -->
+    <div class="photo-grid" id="ep-photos">
+      <div class="photo-slot empty">
+        <span class="material-symbols-outlined" style="font-size:28px;">loop</span>
+      </div>
+    </div>
+    <input type="file" id="photo-upload-input" accept="image/*" style="display:none">
+
+    <!-- About Me -->
+    <div class="box wide-box">
+      <div class="box-header">
+        <div class="box-title"><span class="material-symbols-outlined icon">edit_note</span> About Me</div>
+        <button class="box-action" style="background:none;border:none;">EDIT</button>
+      </div>
+      <textarea id="ep-bio" class="about-textarea" maxlength="500"></textarea>
+      <div class="char-count"><span id="bio-count">0</span> / 500</div>
+    </div>
+
+    <!-- Interests -->
+    <div class="box wide-box">
+      <div class="box-header">
+        <div class="box-title"><span class="material-symbols-outlined icon">stars</span> Interests</div>
+        <button class="box-action" style="background:none;border:none;" onclick="addInterest()">ADD MORE</button>
+      </div>
+      <div id="ep-tags" class="interests-tags"><em style="color:#9CA3AF">Loading...</em></div>
+    </div>
+
+    <!-- Profile Prompts -->
+    <div class="box">
+      <div class="box-header">
+        <div class="box-title"><span class="material-symbols-outlined icon">chat_bubble</span> Profile Prompts</div>
+      </div>
+      <div id="ep-prompts"></div>
+      <button class="btn-add-prompt" onclick="addPrompt()">
+        <span class="material-symbols-outlined">add_circle</span> Add a new prompt
+      </button>
+    </div>
+
+    <!-- Personal Details -->
+    <div class="box">
+      <div class="box-header">
+        <div class="box-title"><span class="material-symbols-outlined icon">tune</span> Personal Details</div>
+      </div>
+      <div class="details-list" id="ep-details"></div>
+    </div>
+
+  </main>
+
+  <div class="sticky-footer">
+    <button class="btn-save">
+      <span class="material-symbols-outlined">save</span> Save Changes
+    </button>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    let currentTags = [];
+    let currentPrompts = [];
+    let currentDetails = {};
+
+    const ICONS_MAP = {
+      'Height': 'height', 'Education': 'school', 'Drinking': 'liquor', 'Pets': 'pets',
+      'Occupation': 'work', 'Company': 'business', 'default': 'tune'
+    };
+
+    async function loadProfile() {
+      try {
+        const profile = await api.profile.getOwn();
+
+        document.getElementById('ep-first-name').value = profile.first_name || '';
+        document.getElementById('ep-dob').value = profile.date_of_birth ? profile.date_of_birth.split('T')[0] : '';
+        document.getElementById('ep-location').value = profile.location || '';
+
+        const bio = profile.bio || '';
+        document.getElementById('ep-bio').value = bio;
+        document.getElementById('bio-count').textContent = bio.length;
+
+        // Render dynamically loaded photos
+        renderPhotos(profile.photos || []);
+
+        // Render interest tags
+        currentTags = profile.interest_tags || [];
+        renderTags();
+
+        currentPrompts = profile.prompts_json || [];
+        renderPrompts();
+
+        currentDetails = profile.personal_details_json || {};
+        renderDetails();
+        
+        // Cache for navbar then update upper navigation
+        window._cachedProfile = profile;
+        if (typeof populateNavbar === 'function') populateNavbar();
+
+      } catch (err) {
+        showToast('Could not load profile: ' + err.message, 'error');
+      }
+    }
+
+    function renderPhotos(photos) {
+      const grid = document.getElementById('ep-photos');
+      let html = '';
+      
+      // We display exactly 6 slots
+      for (let i = 0; i < 6; i++) {
+        if (photos[i]) {
+          html += `
+            <div class="photo-slot">
+              <img src="${api.getImageUrl(photos[i].url)}" alt="Photo ${i + 1}" loading="lazy">
+              <div class="remove-photo" onclick="deletePhoto('${photos[i].id}')">
+                <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+              </div>
+            </div>`;
+        } else if (i === photos.length) {
+          html += `
+            <div class="photo-slot add-new" onclick="document.getElementById('photo-upload-input').click()">
+              <div class="add-icon">+</div>
+            </div>`;
+        } else {
+          html += `
+            <div class="photo-slot empty">
+              <span class="material-symbols-outlined" style="font-size:28px;">image</span>
+            </div>`;
+        }
+      }
+      grid.innerHTML = html;
+    }
+
+    function renderTags() {
+      const container = document.getElementById('ep-tags');
+      container.innerHTML = currentTags.map(tag =>
+        `<div class="tag-pink" data-tag="${tag}">${tag} <span class="material-symbols-outlined" style="cursor:pointer;font-size:16px" onclick="removeTag('${tag}')">close</span></div>`
+      ).join('');
+    }
+
+    function removeTag(tag) {
+      currentTags = currentTags.filter(t => t !== tag);
+      renderTags();
+    }
+
+    function addInterest() {
+      const tag = prompt("Enter a new interest (e.g., Hiking, Sushi, Coffee):");
+      if (tag && tag.trim() !== '') {
+        if (!currentTags.includes(tag.trim())) {
+          currentTags.push(tag.trim());
+          renderTags();
+        }
+      }
+    }
+
+    function renderPrompts() {
+      const el = document.getElementById('ep-prompts');
+      if (!currentPrompts.length) {
+        el.innerHTML = '<p style="color:#9CA3AF;font-size:14px;margin-bottom:12px;">No prompts answered yet.</p>';
+        return;
+      }
+      el.innerHTML = currentPrompts.map((p, idx) => `
+        <div class="prompt-card">
+          <div class="prompt-label">${p.label}</div>
+          <div class="prompt-text">
+            ${p.text}
+            <div>
+              <span class="material-symbols-outlined" style="cursor:pointer;margin-right:8px;" onclick="editPrompt(${idx})">edit</span>
+              <span class="material-symbols-outlined" style="cursor:pointer;" onclick="deletePrompt(${idx})">delete</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addPrompt() {
+      if (currentPrompts.length >= 5) {
+        showToast('You can only have up to 5 prompts', 'error');
+        return;
+      }
+      const label = prompt("Enter prompt question (e.g., My perfect Sunday is...):");
+      if (!label || !label.trim()) return;
+      const text = prompt("Enter your answer:");
+      if (!text || !text.trim()) return;
+
+      currentPrompts.push({ label: label.trim(), text: text.trim() });
+      renderPrompts();
+    }
+
+    function editPrompt(idx) {
+      const newText = prompt(`Edit answer for "${currentPrompts[idx].label}":`, currentPrompts[idx].text);
+      if (newText !== null && newText.trim() !== '') {
+        currentPrompts[idx].text = newText.trim();
+        renderPrompts();
+      }
+    }
+
+    function deletePrompt(idx) {
+      currentPrompts.splice(idx, 1);
+      renderPrompts();
+    }
+
+    function renderDetails() {
+      const el = document.getElementById('ep-details');
+      const keys = Object.keys(currentDetails);
+      if (!keys.length) {
+        el.innerHTML = '<p style="color:#9CA3AF;font-size:14px;">No personal details added.</p>';
+      } else {
+        el.innerHTML = keys.map(k => {
+          const icon = ICONS_MAP[k] || ICONS_MAP['default'];
+          return `
+            <div class="detail-item">
+              <div class="detail-label"><span class="material-symbols-outlined">${icon}</span> ${k}</div>
+              <div class="detail-value">
+                ${currentDetails[k]}
+                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;margin-left:8px;color:#9CA3AF;" onclick="editDetail('${k}')">edit</span>
+                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;color:#9CA3AF;" onclick="deleteDetail('${k}')">delete</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      el.innerHTML += `
+        <div style="margin-top:12px;">
+           <button class="btn-add-prompt" onclick="addDetail()" style="padding:10px;font-size:13px;">
+             <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Detail
+           </button>
+        </div>
+      `;
+    }
+
+    function addDetail() {
+      const key = prompt("Enter detail trait (e.g. Height, Education, Zodiac):");
+      if (!key || !key.trim()) return;
+      const val = prompt(`Enter value for ${key.trim()}:`);
+      if (!val || !val.trim()) return;
+      
+      currentDetails[key.trim()] = val.trim();
+      renderDetails();
+    }
+
+    function editDetail(key) {
+      const val = prompt(\`Edit value for \${key}:\`, currentDetails[key]);
+      if (val !== null && val.trim() !== '') {
+        currentDetails[key] = val.trim();
+        renderDetails();
+      }
+    }
+
+    function deleteDetail(key) {
+      delete currentDetails[key];
+      renderDetails();
+    }
+
+    // Bio char count
+    document.getElementById('ep-bio').addEventListener('input', function() {
+      document.getElementById('bio-count').textContent = this.value.length;
+    });
+
+    // Save Changes
+    document.querySelector('.btn-save').addEventListener('click', async () => {
+      const btn = document.querySelector('.btn-save');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> Saving...';
+
+      try {
+        const payload = {
+          first_name: document.getElementById('ep-first-name').value.trim(),
+          location: document.getElementById('ep-location').value.trim(),
+          bio: document.getElementById('ep-bio').value.trim(),
+          interest_tags: currentTags,
+          prompts_json: currentPrompts,
+          personal_details_json: currentDetails,
+        };
+        const dob = document.getElementById('ep-dob').value;
+        if (dob) payload.date_of_birth = dob;
+
+        await api.profile.update(payload);
+        showToast('Profile saved successfully!', 'success');
+      } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined">save</span> Save Changes';
+      }
+    });
+
+    // Upload functionality
+    document.getElementById('photo-upload-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        showToast('Uploading photo...', 'info');
+        await api.profile.upload(file);
+        showToast('Photo uploaded successfully', 'success');
+        // Reload photos dynamically
+        await loadProfile(); 
+      } catch (err) {
+        showToast('Upload failed: ' + err.message, 'error');
+      } finally {
+        e.target.value = ''; // Reset input to allow selecting same file again
+      }
+    });
+
+    // Delete photo functionality
+    async function deletePhoto(photoId) {
+      if (!confirm('Are you sure you want to delete this photo?')) return;
+      try {
+        await api.profile.deletePhoto(photoId);
+        showToast('Photo deleted', 'success');
+        await loadProfile();
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

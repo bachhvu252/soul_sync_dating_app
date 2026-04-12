@@ -4,7 +4,7 @@
  * Boots Express, attaches Socket.IO, initialises DB, and starts listening.
  */
 
-require('dotenv').config({ path: '../.env.local' });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env.local') });
 
 const http = require('http');
 const app = require('./src/app');

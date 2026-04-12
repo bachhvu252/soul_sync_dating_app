@@ -65,9 +65,6 @@ CREATE TABLE profiles (
     first_name       VARCHAR(100) NOT NULL,
     last_name        VARCHAR(100),
     date_of_birth    DATE,
-    age              INT GENERATED ALWAYS AS (
-                         DATE_PART('year', AGE(date_of_birth))::INT
-                     ) STORED,
     gender           gender_type,
     bio              TEXT         DEFAULT '',
     location         VARCHAR(255) DEFAULT '',
@@ -78,6 +75,12 @@ CREATE TABLE profiles (
     -- { "min_age": 22, "max_age": 35, "max_distance_km": 50,
     --   "genders": ["female"], "interests": ["travel","music"] }
     preferences_json JSONB        DEFAULT '{}',
+
+    -- Array of prompt objects: [{"label":"My Sunday...","text":"..."}]
+    prompts_json     JSONB        DEFAULT '[]',
+
+    -- Arbitrary user details: {"Height":"5'6\"", "Drinking":"Socially", "Occupation":"PM"}
+    personal_details_json JSONB   DEFAULT '{}',
 
     -- Interests / tags for quick overlap scoring (denormalized for query speed)
     interest_tags    TEXT[]       DEFAULT '{}',
@@ -303,7 +306,7 @@ SELECT
     u.is_active,
     p.first_name,
     p.last_name,
-    p.age,
+    date_part('year', age(p.date_of_birth))::int as age,
     p.gender,
     p.bio,
     p.location,
@@ -311,6 +314,8 @@ SELECT
     p.longitude,
     p.interest_tags,
     p.preferences_json,
+    p.prompts_json,
+    p.personal_details_json,
     p.last_active_at,
     ph.url            AS primary_photo_url,
     ph.thumbnail_url  AS primary_photo_thumbnail

@@ -1,9 +1,10 @@
 /**
  * src/models/profile.model.js
  *
- * Extended user profile — name, age, bio, location, preferences.
- * `preferences_json` stores matching preferences (age range, gender pref, max distance, interests).
- * `embedding_vector` stores a serialised float array from the AI service for cosine similarity matching.
+ * Extended user profile — aligned with schema.sql.
+ * Uses first_name + last_name + date_of_birth (age is computed in the DB view).
+ * interest_tags is a PostgreSQL TEXT[] array.
+ * preferences_json is stored as JSONB in Postgres.
  */
 
 const { DataTypes } = require('sequelize');
@@ -15,54 +16,75 @@ const Profile = sequelize.define('Profile', {
     primaryKey: true,
     references: { model: 'users', key: 'id' },
   },
-  name: {
-    type: DataTypes.STRING,
+  first_name: {
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
-  age: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: { min: 18, max: 100 },
+  last_name: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  date_of_birth: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
   },
   gender: {
-    type: DataTypes.STRING(20),
-    allowNull: false,
+    type: DataTypes.ENUM('male', 'female', 'non_binary', 'prefer_not_to_say', 'other'),
+    allowNull: true,
   },
   bio: {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
   location: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     defaultValue: '',
   },
-  // JSON string: { ageMin, ageMax, genderPreference, maxDistanceKm, interests: [] }
-  preferences_json: {
-    type: DataTypes.TEXT,
-    defaultValue: '{}',
-    get() {
-      const raw = this.getDataValue('preferences_json');
-      try { return JSON.parse(raw); } catch { return {}; }
-    },
-    set(value) {
-      this.setDataValue('preferences_json', JSON.stringify(value));
-    },
+  latitude: {
+    type: DataTypes.DECIMAL(9, 6),
+    allowNull: true,
   },
-  // Serialised float array from sentence-transformers (stored as JSON string)
+  longitude: {
+    type: DataTypes.DECIMAL(9, 6),
+    allowNull: true,
+  },
+  // Matching preferences: { min_age, max_age, max_distance_km, genders, interests }
+  preferences_json: {
+    type: DataTypes.JSONB,
+    defaultValue: {},
+  },
+  // Profile Prompts: [{label: "...", text: "..."}]
+  prompts_json: {
+    type: DataTypes.JSONB,
+    defaultValue: [],
+  },
+  // Personal Details: { height, education, drinking, pets, occupation, company }
+  personal_details_json: {
+    type: DataTypes.JSONB,
+    defaultValue: {},
+  },
+  // Quick-access interest tags (denormalized from preferences_json)
+  interest_tags: {
+    type: DataTypes.ARRAY(DataTypes.TEXT),
+    defaultValue: [],
+  },
+  // pgvector embedding — stored as TEXT; node-postgres returns it as a string
+  // when pgvector extension is active. Skip if not installed.
   embedding_vector: {
     type: DataTypes.TEXT,
     defaultValue: null,
-    get() {
-      const raw = this.getDataValue('embedding_vector');
-      if (!raw) return null;
-      try { return JSON.parse(raw); } catch { return null; }
-    },
-    set(value) {
-      this.setDataValue('embedding_vector', value ? JSON.stringify(value) : null);
-    },
+  },
+  profile_views: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  last_active_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
 }, {
   tableName: 'profiles',
+  underscored: true,
 });
 
 module.exports = Profile;

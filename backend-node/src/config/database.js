@@ -37,15 +37,16 @@ if (databaseUrl.startsWith('sqlite:')) {
  * without dropping data. Use migrations for production.
  */
 async function initDB() {
-  // Register models
+  // Register models (associations only — schema is managed by schema.sql)
   require('../models');
 
   try {
     await sequelize.authenticate();
     console.log('[DB] Connection established.');
-
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
-    console.log('[DB] Schema synced.');
+    // We do NOT call sequelize.sync() because the schema is already applied
+    // via database/schema.sql. Running sync({ alter }) on a live Postgres DB
+    // with ENUMs and pgvector columns can cause conflicts.
+    console.log('[DB] Ready (schema managed externally via schema.sql).');
   } catch (err) {
     console.error('[DB] Unable to connect:', err);
     throw err;

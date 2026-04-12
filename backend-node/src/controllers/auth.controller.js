@@ -25,9 +25,10 @@ const {
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
-  name: Joi.string().min(2).max(60).required(),
-  age: Joi.number().integer().min(18).max(100).required(),
-  gender: Joi.string().valid('male', 'female', 'non-binary', 'other').required(),
+  first_name: Joi.string().min(2).max(60).required(),
+  last_name: Joi.string().max(60).allow('', null),
+  date_of_birth: Joi.string().isoDate().optional(),
+  gender: Joi.string().valid('male', 'female', 'non_binary', 'prefer_not_to_say', 'other').required(),
 });
 
 const loginSchema = Joi.object({
@@ -59,7 +60,7 @@ const register = async (req, res) => {
     return res.status(400).json({ success: false, error: error.details.map((d) => d.message).join('; ') });
   }
 
-  const { email, password, name, age, gender } = value;
+  const { email, password, first_name, last_name, date_of_birth, gender } = value;
 
   // Check for existing email
   const existing = await User.findOne({ where: { email } });
@@ -75,7 +76,7 @@ const register = async (req, res) => {
   const result = await sequelize.transaction(async (t) => {
     const user = await User.create({ email, password_hash }, { transaction: t });
     const profile = await Profile.create(
-      { user_id: user.id, name, age, gender },
+      { user_id: user.id, first_name, last_name: last_name || null, date_of_birth: date_of_birth || null, gender },
       { transaction: t },
     );
     return { user, profile };

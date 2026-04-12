@@ -7,6 +7,7 @@
  */
 
 const express = require('express');
+require('express-async-errors'); // Catches unhandled async errors in route handlers
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -25,7 +26,18 @@ const app = express();
 // ----- Global Middleware -----
 
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowed = [
+      process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+    ];
+    // Allow requests with no origin (curl, Postman, same-origin)
+    if (!origin || allowed.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
   credentials: true,
 }));
 

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulSync — Profile</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Material Symbols Component -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --color-primary: #EE2B7C;
+      --color-primary-light: #FDF2F8;
+      --color-bg: #FAFAFA;
+      --text-dark: #1F2937;
+      --text-muted: #6B7280;
+      --border-color: #E5E7EB;
+      
+      --font-display: 'Public Sans', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: var(--font-body); border: none; outline: none; }
+    ul { list-style: none; }
+
+    /* ============================================================
+       NAVIGATION BAR
+    ============================================================ */
+    .navbar {
+      height: 80px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-logo img { height: 40px; cursor: pointer; }
+    
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links li a {
+      font-weight: 600; font-size: 14px;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .nav-links li a:hover { color: var(--color-primary); }
+    .nav-links li a.active { color: var(--text-dark); position: relative; }
+    .nav-links li a.active::after {
+      content: ''; position: absolute; bottom: -32px; left: 0; width: 100%;
+      height: 2px; background: var(--color-primary);
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    .bell-icon { width: 24px; height: 24px; color: var(--text-dark); }
+    
+    .user-profile {
+      display: flex; align-items: center; gap: 12px;
+      padding-left: 24px; border-left: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-name { font-weight: 700; font-size: 14px; }
+    .user-tier { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+    /* ============================================================
+       PROFILE LAYOUT
+    ============================================================ */
+    .container {
+      max-width: 1000px; margin: 48px auto;
+      display: flex; flex-direction: column; gap: 48px;
+      padding: 0 24px;
+    }
+
+    /* Top Profile Card */
+    .profile-header {
+      display: flex; gap: 32px; align-items: flex-start;
+    }
+
+    .profile-gallery-card {
+      position: relative;
+      background: white; border-radius: 20px;
+      padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      display: flex; gap: 12px;
+    }
+    .profile-img-lg {
+      width: 160px; height: 220px; border-radius: 12px; object-fit: cover;
+    }
+    .verified-badge {
+      position: absolute; bottom: -8px; right: -8px;
+      width: 32px; height: 32px; background: var(--color-primary);
+      color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      border: 3px solid var(--color-bg); font-size: 16px;
+    }
+    
+    .thinking-bubble {
+      position: absolute; top: -16px; left: -16px;
+      background: #FCE7F3; color: var(--text-dark); font-size: 10px; font-weight: 600;
+      padding: 8px 12px; border-radius: 12px; border-bottom-left-radius: 0;
+      border: 1px solid #FBCFE8; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .profile-details {
+      flex: 1; padding-top: 12px;
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 32px; font-weight: 800; color: #831843;
+      margin-bottom: 4px;
+    }
+    .profile-tagline {
+      font-size: 15px; font-weight: 500; color: var(--color-primary);
+      margin-bottom: 24px;
+    }
+    .profile-bio {
+      font-size: 16px; color: var(--text-muted); line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .action-buttons {
+      display: flex; gap: 16px;
+    }
+    .btn-edit {
+      background: #EE2B7C; color: white;
+      padding: 12px 24px; border-radius: 24px; font-weight: 700; font-size: 14px;
+      transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(238,43,124,0.3);
+    }
+    .btn-edit:hover { opacity: 0.9; }
+    
+    .btn-preview {
+      background: #E5E7EB; color: var(--text-dark);
+      padding: 12px 24px; border-radius: 24px; font-weight: 700; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn-preview:hover { background: #D1D5DB; }
+
+    /* Stats Section */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 800; color: #831843;
+    }
+    .dropdown {
+      background: #FCE7F3; color: #BE185D; padding: 6px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; display: inline-block;
+    }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    }
+    .stat-card {
+      background: white; border-radius: 20px; padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative;
+    }
+    .stat-icon {
+      position: absolute; top: 24px; right: 24px; color: var(--color-primary); font-size: 24px;
+    }
+    .stat-label {
+      font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px;
+    }
+    .stat-value {
+      font-family: var(--font-display); font-size: 36px; font-weight: 800; color: #831843; margin-bottom: 8px;
+    }
+    .stat-trend {
+      font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;
+    }
+    .trend-up { color: #10B981; }
+    .trend-down { color: #EE2B7C; }
+
+    /* Insights Section */
+    .insights-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    
+    .vibe-card {
+      background: #FFF5F8; border-radius: 20px; padding: 32px;
+      border: 1px solid #FBCFE8; text-align: center; display: flex; flex-direction: column; align-items: center;
+    }
+    .vibe-card-title {
+      align-self: flex-start; display: flex; align-items: center; gap: 8px;
+      font-size: 16px; font-weight: 800; color: #831843; margin-bottom: 24px;
+    }
+    .vibe-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .vibe-name { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: #831843; margin-bottom: 12px; }
+    .vibe-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; padding: 0 24px; }
+
+    .ai-card {
+      background: #60022A; border-radius: 20px; padding: 32px;
+      color: white; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .ai-card-title {
+      display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #F9A8D4; margin-bottom: 24px;
+    }
+    .ai-desc { font-size: 16px; line-height: 1.6; margin-bottom: 32px; font-weight: 300; }
+    .ai-desc strong { font-weight: 700; color: white; }
+    
+    .btn-update {
+      background: #EE2B7C; color: white; padding: 14px; border-radius: 12px;
+      font-weight: 700; font-size: 14px; width: 100%; transition: opacity 0.2s;
+    }
+    .btn-update:hover { opacity: 0.9; }
+
+    /* Top Interests */
+    .interests h3 { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #831843; margin-bottom: 16px; }
+    .tags { display: flex; gap: 12px; flex-wrap: wrap; }
+    .tag {
+      background: white; border: 1px solid var(--border-color); padding: 8px 16px;
+      border-radius: 24px; font-size: 14px; font-weight: 600; color: var(--text-dark);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Log Out Footer */
+    .footer-actions { display: flex; justify-content: center; margin: 40px 0; }
+    .btn-logout {
+      background: #EE2B7C; color: white; padding: 16px 48px; border-radius: 30px;
+      font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+      display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(238,43,124,0.3);
+      transition: transform 0.2s; text-decoration: none;
+    }
+    .btn-logout:hover { transform: translateY(-2px); }
+
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="SoulSync Logo" style="filter: hue-rotate(300deg) saturate(300%);">
+      </a>
+      <ul class="nav-links">
+        <li><a href="explore.html">Home</a></li>
+        <li><a href="matches.html">Matches</a></li>
+        <li><a href="messages.html">Messages</a></li>
+        <li><a href="explore.html">Explore</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <span class="material-symbols-outlined bell-icon">notifications</span>
+      <div class="user-profile">
+        <div class="user-info">
+          <span id="nav-user-name" class="user-name">Loading...</span>
+          <span id="nav-user-tier" class="user-tier">Member</span>
+        </div>
+        <img src="public/photo1.webp" alt="User Profile" class="user-avatar">
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Profile Container -->
+  <main class="container">
+    
+    <!-- Header Section -->
+    <section class="profile-header">
+      <div class="profile-gallery-card">
+        <div class="thinking-bubble">What are you<br>thinking ?...</div>
+        <img src="public/photo1.webp" class="profile-img-lg" alt="Primary Photo 1">
+        <img src="public/photo1.webp" class="profile-img-lg" alt="Primary Photo 2">
+        <div class="verified-badge"><span class="material-symbols-outlined" style="font-size:18px;">verified</span></div>
+      </div>
+
+      <div class="profile-details">
+        <h1 id="profile-name" class="profile-name">Loading...</h1>
+        <div id="profile-tagline" class="profile-tagline"></div>
+        <p id="profile-bio" class="profile-bio"></p>
+        <div class="action-buttons">
+          <a href="edit-profile.html"><button class="btn-edit">Edit Profile</button></a>
+          <button class="btn-preview">Preview</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SoulStats Section -->
+    <section class="stats-section">
+      <div class="section-header">
+        <h2 class="section-title">SoulStats</h2>
+        <div class="dropdown">Last 30 Days ▼</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="material-symbols-outlined stat-icon">favorite</span>
+          <div class="stat-label">Match Rate</div>
+          <div class="stat-value">84%</div>
+          <div class="stat-trend trend-up"><span class="material-symbols-outlined" style="font-size:14px;">trending_up</span> +5% from last week</div>
+        </div>
+        <div class="stat-card">
+          <span class="material-symbols-outlined stat-icon">chat_bubble</span>
+          <div class="stat-label">Response Rate</div>
+          <div class="stat-value">92%</div>
+          <div class="stat-trend trend-up"><span class="material-symbols-outlined" style="font-size:14px;">trending_up</span> +2% from last week</div>
+        </div>
+        <div class="stat-card">
+          <span class="material-symbols-outlined stat-icon">visibility</span>
+          <div class="stat-label">Profile Views</div>
+          <div id="stat-views" class="stat-value">—</div>
+          <div class="stat-trend trend-down"><span class="material-symbols-outlined" style="font-size:14px;">trending_down</span> -1% from last week</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section class="insights-grid">
+      <div class="vibe-card">
+        <div class="vibe-card-title"><span style="color:#EE2B7C;">✨</span> Your Current Vibe</div>
+        <span class="vibe-icon">💗</span>
+        <h3 class="vibe-name">Romantic & Calm</h3>
+        <p class="vibe-desc">People perceive your profile as peaceful and open-hearted.</p>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-card-title"><span class="material-symbols-outlined" style="font-size:20px;">lightbulb</span> AI Feedback</div>
+        <p class="ai-desc">
+          "Your profile is performing well! We've noticed that <strong>you get 3x more replies</strong> when your bio includes specific details about your hobbies."
+        </p>
+        <button class="btn-update">Update Bio Now</button>
+      </div>
+    </section>
+
+    <!-- Interests -->
+    <section class="interests">
+      <h3>Top Interests</h3>
+      <div id="interests-tags" class="tags">
+        <div class="tag">Loading interests...</div>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <a href="logout.html" class="btn-logout">
+        <span class="material-symbols-outlined">logout</span> LOG OUT
+      </a>
+    </div>
+
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    Auth.requireAuth();
+
+    async function loadProfile() {
+      try {
+        const profile = await api.profile.getOwn();
+        window._cachedProfile = profile;
+        const user = Auth.getUser();
+
+        // Compute age
+        const age = profile.date_of_birth
+          ? Math.floor((Date.now() - new Date(profile.date_of_birth)) / (365.25 * 24 * 3600 * 1000))
+          : null;
+
+        const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+        document.getElementById('profile-name').textContent = age ? `${displayName}, ${age}` : displayName;
+        document.getElementById('profile-tagline').textContent = profile.location || '';
+        document.getElementById('profile-bio').textContent = profile.bio
+          ? `"${profile.bio}"`
+          : 'No bio yet. Click Edit Profile to add one!';
+
+        // Profile views from DB
+        const views = profile.profile_views || 0;
+        document.getElementById('stat-views').textContent = views >= 1000 ? (views / 1000).toFixed(1) + 'k' : views;
+
+        // Navbar
+        document.getElementById('nav-user-name').textContent = displayName;
+        document.getElementById('nav-user-tier').textContent = `${user?.membership_tier || 'free'} Member`;
+
+        // Interest tags
+        const tagsEl = document.getElementById('interests-tags');
+        const tags = profile.interest_tags || [];
+        if (tags.length > 0) {
+          tagsEl.innerHTML = tags.map(t => `<div class="tag">${t}</div>`).join('');
+        } else {
+          tagsEl.innerHTML = '<div class="tag" style="color:#9CA3AF">No interests added yet</div>';
+        }
+
+        // Primary photo
+        const photos = profile.photos || [];
+        const primaryPhoto = photos.find(p => p.is_primary) || photos[0];
+        if (primaryPhoto) {
+          document.querySelectorAll('.profile-img-lg').forEach(img => img.src = primaryPhoto.url);
+          document.querySelector('.user-avatar').src = primaryPhoto.url;
+        }
+
+      } catch (err) {
+        showToast('Could not load profile: ' + err.message, 'error');
+      }
+    }
+
+    loadProfile();
+
+    // Logout button
+    document.querySelector('.btn-logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await api.auth.logout();
+      window.location.href = '/logout.html';
+    });
+  </script>
+</body>
+</html>

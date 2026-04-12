@@ -30,6 +30,7 @@ const Swipe = sequelize.define('Swipe', {
   },
 }, {
   tableName: 'swipes',
+  underscored: true,
   updatedAt: false,
   indexes: [
     { unique: true, fields: ['swiper_id', 'swiped_id'] },

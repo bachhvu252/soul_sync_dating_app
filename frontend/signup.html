@@ -263,13 +263,13 @@
       <!-- Branding -->
       <div class="branding">
         <a href="/">
-          <img class="logo-img" src="./public/login-logo.png" onerror="this.src='https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95f372b8-a4c4-44e7-b5a6-d827bda5f541'" alt="SoulSync Logo" />
+          <img class="logo-img" src="./public/login-logo.png" alt="SoulSync Logo" />
         </a>
         <p class="subtitle">Join the Vibe.</p>
       </div>
 
       <!-- Form -->
-      <form class="signup-form" action="/matches.html" method="GET" onsubmit="event.preventDefault(); window.location.href='/matches.html';">
+      <form class="signup-form" id="signup-form">
         
         <div class="input-row">
           <!-- First Name -->
@@ -336,10 +336,45 @@
     </div>
   </div>
 
+  <script src="/js/api.js"></script>
   <script>
-    // Reset date picker color when value is selected
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) window.location.href = '/profile.html';
+
+    // Fix date input color
     document.getElementById('dob').addEventListener('change', function() {
-      if(this.value) this.style.color = 'var(--text-dark)';
+      if (this.value) this.style.color = 'var(--text-dark)';
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('.btn-submit');
+
+      const first_name = document.getElementById('fname').value.trim();
+      const last_name  = document.getElementById('lname').value.trim();
+      const email      = document.getElementById('email').value.trim();
+      const password   = document.getElementById('password').value;
+      const dob        = document.getElementById('dob').value; // YYYY-MM-DD
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        await api.auth.register({
+          first_name,
+          last_name: last_name || undefined,
+          email,
+          password,
+          date_of_birth: dob || undefined,
+          gender: 'other', // default; user can update in edit-profile
+        });
+        showToast('Account created! Taking you to your profile...', 'success');
+        setTimeout(() => { window.location.href = '/profile.html'; }, 900);
+      } catch (err) {
+        showToast(err.message || 'Registration failed. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
     });
   </script>
 </body>

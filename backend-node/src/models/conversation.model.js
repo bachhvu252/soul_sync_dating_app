@@ -21,6 +21,7 @@ const Conversation = sequelize.define('Conversation', {
   },
 }, {
   tableName: 'conversations',
+  underscored: true,
   updatedAt: false,
 });
 

@@ -49,6 +49,7 @@ const Message = sequelize.define('Message', {
   },
 }, {
   tableName: 'messages',
+  underscored: true,
   createdAt: 'sent_at',
   updatedAt: false,
 });

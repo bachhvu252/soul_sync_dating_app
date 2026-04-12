@@ -12,7 +12,8 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../../.env.local", override=False)
+env_path = os.path.join(os.path.dirname(__file__), "../../.env.local")
+load_dotenv(dotenv_path=env_path, override=True)
 
 
 def create_app() -> Flask:

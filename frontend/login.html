@@ -275,13 +275,13 @@
       <!-- Branding -->
       <div class="branding">
         <a href="/">
-          <img class="logo-img" src="./public/login-logo.png" onerror="this.src='https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95f372b8-a4c4-44e7-b5a6-d827bda5f541'" alt="SoulSync Logo" />
+          <img class="logo-img" src="./public/login-logo.png" alt="SoulSync Logo" />
         </a>
         <p class="subtitle">Ready to find your match?</p>
       </div>
 
       <!-- Form -->
-      <form class="login-form" action="/" method="GET" onsubmit="event.preventDefault(); window.location.href='/';">
+      <form class="login-form" id="login-form">
         
         <!-- Email Input -->
         <div class="input-group">
@@ -325,6 +325,30 @@
       <a href="#" class="bottom-link">Safety Tips</a>
     </div>
   </div>
+  <script src="/js/api.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) window.location.href = '/profile.html';
 
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('.btn-submit');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true;
+      btn.textContent = 'Syncing...';
+
+      try {
+        await api.auth.login(email, password);
+        showToast('Welcome back! Redirecting...', 'success');
+        setTimeout(() => { window.location.href = '/profile.html'; }, 800);
+      } catch (err) {
+        showToast(err.message || 'Login failed. Check your credentials.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Sync In';
+      }
+    });
+  </script>
 </body>
 </html>
