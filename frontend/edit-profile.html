@@ -241,12 +241,20 @@
     </div>
     <div class="nav-right">
       <span class="material-symbols-outlined bell-icon">notifications</span>
-      <div class="user-profile">
+      <div class="user-profile" onclick="this.querySelector('.dropdown-menu').classList.toggle('show')" style="cursor: pointer; position: relative;">
         <div class="user-info">
-          <span class="user-name">Ha Chi Ph</span>
-          <span class="user-tier">Pro Member</span>
+          <span id="nav-user-name" class="user-name">Loading...</span>
+          <span id="nav-user-tier" class="user-tier">Member</span>
         </div>
-        <img src="public/avatar_1.png" alt="User Profile" class="user-avatar">
+        <img src="public/photo1.webp" alt="User Profile" class="user-avatar" onerror="this.src='./public/avatar_jungkook.png'">
+        <div class="dropdown-menu" style="display:none; position:absolute; top:50px; right:0; background:white; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); min-width:120px; z-index:100; overflow:hidden;">
+          <a href="/profile.html" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:#1F2937; border-bottom:1px solid #E5E7EB;">My Profile</a>
+          <a href="#" onclick="event.preventDefault(); Auth.logout();" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:#EE2B7C;">Log Out</a>
+        </div>
+        <style>
+          .dropdown-menu.show { display: block !important; }
+          .dropdown-menu a:hover { background: #FDF2F8; }
+        </style>
       </div>
     </div>
   </nav>
@@ -308,9 +316,12 @@
 
     <!-- Interests -->
     <div class="box wide-box">
-      <div class="box-header">
+      <div class="box-header" style="margin-bottom:16px;">
         <div class="box-title"><span class="material-symbols-outlined icon">stars</span> Interests</div>
-        <button class="box-action" style="background:none;border:none;" onclick="addInterest()">ADD MORE</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="text" id="new-interest-input" class="form-control" placeholder="e.g. Hiking, Photography" style="flex:1;">
+        <button style="background: #EE2B7C; color: white; padding: 0 20px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-family: var(--font-body);" onclick="addInterest()">Add</button>
       </div>
       <div id="ep-tags" class="interests-tags"><em style="color:#9CA3AF">Loading...</em></div>
     </div>
@@ -337,7 +348,7 @@
   </main>
 
   <div class="sticky-footer">
-    <button class="btn-save">
+    <button class="btn-save" id="save-profile-btn">
       <span class="material-symbols-outlined">save</span> Save Changes
     </button>
   </div>
@@ -431,14 +442,24 @@
     }
 
     function addInterest() {
-      const tag = prompt("Enter a new interest (e.g., Hiking, Sushi, Coffee):");
+      const input = document.getElementById('new-interest-input');
+      const tag = input.value;
       if (tag && tag.trim() !== '') {
         if (!currentTags.includes(tag.trim())) {
           currentTags.push(tag.trim());
           renderTags();
         }
+        input.value = '';
       }
     }
+
+    // Allow pressing "Enter" in the interest input
+    document.getElementById('new-interest-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addInterest();
+      }
+    });
 
     function renderPrompts() {
       const el = document.getElementById('ep-prompts');
@@ -447,12 +468,12 @@
         return;
       }
       el.innerHTML = currentPrompts.map((p, idx) => `
-        <div class="prompt-card">
-          <div class="prompt-label">${p.label}</div>
+        <div class="prompt-card" id="prompt-card-${idx}">
+          <div class="prompt-label">${escapeHtml(p.label)}</div>
           <div class="prompt-text">
-            ${p.text}
+            <span id="prompt-text-${idx}">${escapeHtml(p.text)}</span>
             <div>
-              <span class="material-symbols-outlined" style="cursor:pointer;margin-right:8px;" onclick="editPrompt(${idx})">edit</span>
+              <span class="material-symbols-outlined" style="cursor:pointer;margin-right:8px;" onclick="startEditPrompt(${idx})">edit</span>
               <span class="material-symbols-outlined" style="cursor:pointer;" onclick="deletePrompt(${idx})">delete</span>
             </div>
           </div>
@@ -460,26 +481,88 @@
       `).join('');
     }
 
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     function addPrompt() {
       if (currentPrompts.length >= 5) {
         showToast('You can only have up to 5 prompts', 'error');
         return;
       }
-      const label = prompt("Enter prompt question (e.g., My perfect Sunday is...):");
-      if (!label || !label.trim()) return;
-      const text = prompt("Enter your answer:");
-      if (!text || !text.trim()) return;
+      // Show inline form
+      const el = document.getElementById('ep-prompts');
+      const formHtml = `
+        <div class="prompt-card" id="prompt-add-form" style="border:1px solid #EE2B7C;">
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">Prompt Question</label>
+            <input type="text" id="new-prompt-label" class="form-control" placeholder="e.g., My perfect Sunday is...">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">Your Answer</label>
+            <input type="text" id="new-prompt-text" class="form-control" placeholder="Enter your answer...">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="cancelAddPrompt()" style="background:#E5E7EB;color:#1F2937;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Cancel</button>
+            <button onclick="confirmAddPrompt()" style="background:#EE2B7C;color:white;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Save</button>
+          </div>
+        </div>
+      `;
+      // Remove existing add form if present
+      const existing = document.getElementById('prompt-add-form');
+      if (existing) existing.remove();
+      el.insertAdjacentHTML('beforeend', formHtml);
+      document.getElementById('new-prompt-label').focus();
+    }
 
-      currentPrompts.push({ label: label.trim(), text: text.trim() });
+    function cancelAddPrompt() {
+      const form = document.getElementById('prompt-add-form');
+      if (form) form.remove();
+    }
+
+    function confirmAddPrompt() {
+      const label = document.getElementById('new-prompt-label').value.trim();
+      const text = document.getElementById('new-prompt-text').value.trim();
+      if (!label || !text) {
+        showToast('Please fill in both fields', 'error');
+        return;
+      }
+      currentPrompts.push({ label, text });
       renderPrompts();
     }
 
-    function editPrompt(idx) {
-      const newText = prompt(`Edit answer for "${currentPrompts[idx].label}":`, currentPrompts[idx].text);
-      if (newText !== null && newText.trim() !== '') {
-        currentPrompts[idx].text = newText.trim();
-        renderPrompts();
+    function startEditPrompt(idx) {
+      const card = document.getElementById('prompt-card-' + idx);
+      if (!card) return;
+      const p = currentPrompts[idx];
+      card.innerHTML = `
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">Prompt Question</label>
+          <input type="text" id="edit-prompt-label-${idx}" class="form-control" value="${escapeHtml(p.label)}">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">Your Answer</label>
+          <input type="text" id="edit-prompt-text-${idx}" class="form-control" value="${escapeHtml(p.text)}">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onclick="renderPrompts()" style="background:#E5E7EB;color:#1F2937;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Cancel</button>
+          <button onclick="confirmEditPrompt(${idx})" style="background:#EE2B7C;color:white;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Save</button>
+        </div>
+      `;
+      document.getElementById('edit-prompt-label-' + idx).focus();
+    }
+
+    function confirmEditPrompt(idx) {
+      const label = document.getElementById('edit-prompt-label-' + idx).value.trim();
+      const text = document.getElementById('edit-prompt-text-' + idx).value.trim();
+      if (!label || !text) {
+        showToast('Please fill in both fields', 'error');
+        return;
       }
+      currentPrompts[idx] = { label, text };
+      renderPrompts();
     }
 
     function deletePrompt(idx) {
@@ -496,12 +579,12 @@
         el.innerHTML = keys.map(k => {
           const icon = ICONS_MAP[k] || ICONS_MAP['default'];
           return `
-            <div class="detail-item">
-              <div class="detail-label"><span class="material-symbols-outlined">${icon}</span> ${k}</div>
+            <div class="detail-item" id="detail-item-${k.replace(/\s/g, '_')}">
+              <div class="detail-label"><span class="material-symbols-outlined">${icon}</span> ${escapeHtml(k)}</div>
               <div class="detail-value">
-                ${currentDetails[k]}
-                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;margin-left:8px;color:#9CA3AF;" onclick="editDetail('${k}')">edit</span>
-                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;color:#9CA3AF;" onclick="deleteDetail('${k}')">delete</span>
+                <span>${escapeHtml(currentDetails[k])}</span>
+                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;margin-left:8px;color:#9CA3AF;" onclick="startEditDetail('${escapeHtml(k)}')">edit</span>
+                <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;color:#9CA3AF;" onclick="deleteDetail('${escapeHtml(k)}')">delete</span>
               </div>
             </div>
           `;
@@ -509,30 +592,77 @@
       }
 
       el.innerHTML += `
-        <div style="margin-top:12px;">
-           <button class="btn-add-prompt" onclick="addDetail()" style="padding:10px;font-size:13px;">
-             <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Detail
-           </button>
+        <div style="margin-top:12px;" id="detail-add-area">
+          <div id="detail-add-form" style="display:none; margin-bottom:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <input type="text" id="new-detail-key" class="form-control" placeholder="e.g. Height, Education">
+              <input type="text" id="new-detail-val" class="form-control" placeholder="e.g. 5'11, Stanford">
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+              <button onclick="cancelAddDetail()" style="background:#E5E7EB;color:#1F2937;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Cancel</button>
+              <button onclick="confirmAddDetail()" style="background:#EE2B7C;color:white;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">Add</button>
+            </div>
+          </div>
+          <button class="btn-add-prompt" onclick="showAddDetailForm()" style="padding:10px;font-size:13px;">
+            <span class="material-symbols-outlined" style="font-size:18px;">add</span> Add Detail
+          </button>
         </div>
       `;
     }
 
-    function addDetail() {
-      const key = prompt("Enter detail trait (e.g. Height, Education, Zodiac):");
-      if (!key || !key.trim()) return;
-      const val = prompt(`Enter value for ${key.trim()}:`);
-      if (!val || !val.trim()) return;
-      
-      currentDetails[key.trim()] = val.trim();
+    function showAddDetailForm() {
+      const form = document.getElementById('detail-add-form');
+      if (form) {
+        form.style.display = 'block';
+        document.getElementById('new-detail-key').focus();
+      }
+    }
+
+    function cancelAddDetail() {
+      const form = document.getElementById('detail-add-form');
+      if (form) {
+        form.style.display = 'none';
+        document.getElementById('new-detail-key').value = '';
+        document.getElementById('new-detail-val').value = '';
+      }
+    }
+
+    function confirmAddDetail() {
+      const key = document.getElementById('new-detail-key').value.trim();
+      const val = document.getElementById('new-detail-val').value.trim();
+      if (!key || !val) {
+        showToast('Please fill in both fields', 'error');
+        return;
+      }
+      currentDetails[key] = val;
       renderDetails();
     }
 
-    function editDetail(key) {
-      const val = prompt(\`Edit value for \${key}:\`, currentDetails[key]);
-      if (val !== null && val.trim() !== '') {
-        currentDetails[key] = val.trim();
-        renderDetails();
+    function startEditDetail(key) {
+      const safeId = key.replace(/\s/g, '_');
+      const item = document.getElementById('detail-item-' + safeId);
+      if (!item) return;
+      const icon = ICONS_MAP[key] || ICONS_MAP['default'];
+      item.innerHTML = `
+        <div class="detail-label"><span class="material-symbols-outlined">${icon}</span> ${escapeHtml(key)}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="text" id="edit-detail-val-${safeId}" class="form-control" value="${escapeHtml(currentDetails[key])}" style="width:160px;padding:8px 12px;">
+          <button onclick="confirmEditDetail('${escapeHtml(key)}')" style="background:#EE2B7C;color:white;padding:6px 12px;border-radius:8px;font-weight:600;border:none;cursor:pointer;font-size:12px;">Save</button>
+          <button onclick="renderDetails()" style="background:#E5E7EB;color:#1F2937;padding:6px 12px;border-radius:8px;font-weight:600;border:none;cursor:pointer;font-size:12px;">Cancel</button>
+        </div>
+      `;
+      document.getElementById('edit-detail-val-' + safeId).focus();
+    }
+
+    function confirmEditDetail(key) {
+      const safeId = key.replace(/\s/g, '_');
+      const val = document.getElementById('edit-detail-val-' + safeId).value.trim();
+      if (!val) {
+        showToast('Value cannot be empty', 'error');
+        return;
       }
+      currentDetails[key] = val;
+      renderDetails();
     }
 
     function deleteDetail(key) {
@@ -546,8 +676,8 @@
     });
 
     // Save Changes
-    document.querySelector('.btn-save').addEventListener('click', async () => {
-      const btn = document.querySelector('.btn-save');
+    document.getElementById('save-profile-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('save-profile-btn');
       btn.disabled = true;
       btn.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> Saving...';
 

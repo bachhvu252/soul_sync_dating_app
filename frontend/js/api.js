@@ -31,6 +31,10 @@ const Auth = {
     localStorage.removeItem('ss_access_token');
     localStorage.removeItem('ss_user');
   },
+  logout() {
+    this.clear();
+    window.location.href = '/login.html';
+  },
   isLoggedIn() {
     return !!this.getToken();
   },
@@ -241,3 +245,9 @@ function populateNavbar() {
     avatarEl.src = api.getImageUrl(profile.photos[0].url);
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (Auth.isLoggedIn()) {
+    populateNavbar();
+  }
+});

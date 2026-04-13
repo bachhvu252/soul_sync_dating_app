@@ -263,12 +263,20 @@
     </div>
     <div class="nav-right">
       <svg class="bell-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-      <div class="user-profile">
+      <div class="user-profile" onclick="this.querySelector('.dropdown-menu').classList.toggle('show')" style="cursor: pointer; position: relative;">
         <div class="user-info">
-          <span class="user-name">Ha Chi Ph</span>
-          <span class="user-tier">PRO MEMBER</span>
+          <span class="user-name">Loading...</span>
+          <span class="user-tier">Member</span>
         </div>
-        <img src="./public/avatar_jungkook.png" class="user-avatar" alt="User">
+        <img src="public/photo1.webp" alt="User Profile" class="user-avatar" onerror="this.src='./public/avatar_jungkook.png'">
+        <div class="dropdown-menu" style="display:none; position:absolute; top:50px; right:0; background:white; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); min-width:120px; z-index:100; overflow:hidden;">
+          <a href="/profile.html" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:#1F2937; border-bottom:1px solid #E5E7EB;">My Profile</a>
+          <a href="#" onclick="event.preventDefault(); Auth.logout();" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:#EE2B7C;">Log Out</a>
+        </div>
+        <style>
+          .dropdown-menu.show { display: block !important; }
+          .dropdown-menu a:hover { background: #FDF2F8; }
+        </style>
       </div>
     </div>
   </nav>
@@ -469,7 +477,7 @@
   </div>
 
   <!-- FLOATING APP MESSAGES BTN -->
-  <div class="floating-bot">
+  <div class="floating-bot" onclick="window.location.href='/messages.html'">
     <span>
       <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
       Messages
@@ -481,5 +489,9 @@
     </div>
   </div>
 
+  <script src="/js/api.js"></script>
+  <script>
+    Auth.requireAuth();
+  </script>
 </body>
 </html>

@@ -258,12 +258,20 @@
     </div>
     <div class="nav-right">
       <span class="material-symbols-outlined bell-icon">notifications</span>
-      <div class="user-profile">
+      <div class="user-profile" onclick="this.querySelector('.dropdown-menu').classList.toggle('show')" style="cursor: pointer; position: relative;">
         <div class="user-info">
           <span id="nav-user-name" class="user-name">Loading...</span>
           <span id="nav-user-tier" class="user-tier">Member</span>
         </div>
-        <img src="public/photo1.webp" alt="User Profile" class="user-avatar">
+        <img src="public/photo1.webp" alt="User Profile" class="user-avatar" onerror="this.src='./public/avatar_jungkook.png'">
+        <div class="dropdown-menu" style="display:none; position:absolute; top:50px; right:0; background:white; border:1px solid var(--border-color); border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); min-width:120px; z-index:100; overflow:hidden;">
+          <a href="/profile.html" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:var(--text-dark); border-bottom:1px solid var(--border-color);">My Profile</a>
+          <a href="#" onclick="event.preventDefault(); Auth.logout();" style="display:block; padding:12px 16px; font-size:14px; font-weight:600; color:#EE2B7C;">Log Out</a>
+        </div>
+        <style>
+          .dropdown-menu.show { display: block !important; }
+          .dropdown-menu a:hover { background: #FDF2F8; }
+        </style>
       </div>
     </div>
   </nav>
@@ -345,8 +353,20 @@
       </div>
     </section>
 
+    <!-- Profile Prompts -->
+    <section class="interests" id="prompts-section" style="display:none;">
+      <h3>Profile Prompts</h3>
+      <div id="profile-prompts"></div>
+    </section>
+
+    <!-- Personal Details -->
+    <section class="interests" id="details-section" style="display:none;">
+      <h3>About Me</h3>
+      <div id="profile-details" class="tags"></div>
+    </section>
+
     <div class="footer-actions">
-      <a href="logout.html" class="btn-logout">
+      <a href="#" class="btn-logout" onclick="event.preventDefault(); Auth.logout();">
         <span class="material-symbols-outlined">logout</span> LOG OUT
       </a>
     </div>
@@ -392,12 +412,36 @@
           tagsEl.innerHTML = '<div class="tag" style="color:#9CA3AF">No interests added yet</div>';
         }
 
+        // Prompts
+        const prompts = profile.prompts_json || [];
+        const promptsSection = document.getElementById('prompts-section');
+        const promptsEl = document.getElementById('profile-prompts');
+        if (prompts.length > 0) {
+          promptsSection.style.display = 'block';
+          promptsEl.innerHTML = prompts.map(p => `
+            <div style="background:#FDF2F8;border-radius:12px;padding:16px;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:700;color:#EE2B7C;text-transform:uppercase;margin-bottom:6px;">${p.label}</div>
+              <div style="font-size:14px;color:#1F2937;">${p.text}</div>
+            </div>
+          `).join('');
+        }
+
+        // Personal Details
+        const details = profile.personal_details_json || {};
+        const detailKeys = Object.keys(details);
+        const detailsSection = document.getElementById('details-section');
+        const detailsEl = document.getElementById('profile-details');
+        if (detailKeys.length > 0) {
+          detailsSection.style.display = 'block';
+          detailsEl.innerHTML = detailKeys.map(k => `<div class="tag">${k}: ${details[k]}</div>`).join('');
+        }
+
         // Primary photo
         const photos = profile.photos || [];
         const primaryPhoto = photos.find(p => p.is_primary) || photos[0];
         if (primaryPhoto) {
-          document.querySelectorAll('.profile-img-lg').forEach(img => img.src = primaryPhoto.url);
-          document.querySelector('.user-avatar').src = primaryPhoto.url;
+          document.querySelectorAll('.profile-img-lg').forEach(img => img.src = api.getImageUrl(primaryPhoto.url));
+          document.querySelector('.user-avatar').src = api.getImageUrl(primaryPhoto.url);
         }
 
       } catch (err) {
@@ -406,13 +450,6 @@
     }
 
     loadProfile();
-
-    // Logout button
-    document.querySelector('.btn-logout').addEventListener('click', async (e) => {
-      e.preventDefault();
-      await api.auth.logout();
-      window.location.href = '/logout.html';
-    });
   </script>
 </body>
 </html>

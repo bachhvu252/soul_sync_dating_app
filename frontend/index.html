@@ -929,7 +929,12 @@
   <!-- ========================================================
     JAVASCRIPT
   ======================================================== -->
+  <script src="/js/api.js"></script>
   <script>
+    if (Auth.isLoggedIn()) {
+      window.location.href = '/explore.html';
+    }
+
     /* ---------- Intersection Observer: fade-up animations ---------- */
     const fadeEls = document.querySelectorAll('.fade-up:not(.visible)');
     const io = new IntersectionObserver((entries) => {
